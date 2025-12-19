@@ -1,7 +1,12 @@
 // config/axios.js
 import axios from "axios";
 
-export const API_URL = "http://127.0.0.1:8000";
+//local
+// export const API_URL = "http://127.0.0.1:8000";
+
+//production
+
+export const API_URL = "https://fosika.mesupres.edu.mg";
 
 const API = axios.create({
   baseURL: API_URL + "/api",
@@ -10,7 +15,6 @@ const API = axios.create({
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-
   },
 });
 
