@@ -2,10 +2,10 @@
 import axios from "axios";
 
 //local
-export const API_URL = "http://127.0.0.1:8000";
+//export const API_URL = "http://127.0.0.1:8000";
 
 //production
-//export const API_URL = "https://fosika.mesupres.edu.mg";
+export const API_URL = "https://fosika.mesupres.edu.mg";
 
 const API = axios.create({
   baseURL: API_URL + "/api",
