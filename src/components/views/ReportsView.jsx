@@ -1,37 +1,37 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-empty-pattern */
 import React, { useState, useEffect, useMemo } from "react";
 import {
-    Eye,
-    Trash2,
-    X,
-    Download,
-    AlertCircle,
-    ChevronLeft,
-    ChevronRight,
-    CheckCircle,
-    Plus,
-    Edit,
-    UserCheck,
-    Filter,
-    Users,
-    ChevronDown,
-    ChevronUp,
-    FileText,
-    ArrowUpDown,
-    AlertTriangle,
-    Printer,
-    GraduationCap,
-    Briefcase,
-    ShieldAlert,
-    Tag,
-    BarChart,
-    ArrowUp,
-    ArrowDown,
-    MessageCircle,
+  Eye,
+  Trash2,
+  X,
+  Download,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Edit,
+  Filter,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  ArrowUpDown,
+  AlertTriangle,
+  Printer,
+  GraduationCap,
+  Briefcase,
+  ShieldAlert,
+  Tag,
+  BarChart,
+  ArrowUp,
+  ArrowDown,
+  MessageCircle,
 } from "lucide-react";
 import API from "../../config/axios";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-
 
 import repLogo from "../../assets/images/logo rep.png";
 import mesupresLogo from "../../assets/images/logo mesupres.png";
@@ -39,1260 +39,1238 @@ import fosikaLogo from "../../assets/images/logo fosika.png";
 
 // Composant Toast pour afficher les messages
 function ToastNotification({ message, type = "error", show, onClose }) {
-    const getTypeStyles = () => {
-        switch (type) {
-            case "success":
-                return "border-green-500";
-            case "warning":
-                return "border-yellow-500";
-            case "info":
-                return "border-blue-500";
-            case "error":
-            default:
-                return "border-red-500";
-        }
-    };
+  const getTypeStyles = () => {
+    switch (type) {
+      case "success":
+        return "border-green-500";
+      case "warning":
+        return "border-yellow-500";
+      case "info":
+        return "border-blue-500";
+      case "error":
+      default:
+        return "border-red-500";
+    }
+  };
 
-    const getIcon = () => {
-        switch (type) {
-            case "success":
-                return (
-                    <svg
-                        className="h-6 w-6 text-green-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                    </svg>
-                );
-            case "warning":
-                return (
-                    <svg
-                        className="h-6 w-6 text-yellow-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                        />
-                    </svg>
-                );
-            case "info":
-                return (
-                    <svg
-                        className="h-6 w-6 text-blue-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                    </svg>
-                );
-            case "error":
-            default:
-                return (
-                    <svg
-                        className="h-6 w-6 text-red-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                    </svg>
-                );
-        }
-    };
+  const getIcon = () => {
+    switch (type) {
+      case "success":
+        return (
+          <svg
+            className="h-6 w-6 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        );
+      case "warning":
+        return (
+          <svg
+            className="h-6 w-6 text-yellow-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+        );
+      case "info":
+        return (
+          <svg
+            className="h-6 w-6 text-blue-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        );
+      case "error":
+      default:
+        return (
+          <svg
+            className="h-6 w-6 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        );
+    }
+  };
 
-    return (
-        <div
-            className={`fixed top-5 right-5 z-[9999] transition-all duration-500 transform ${
-                show ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
-        >
-            <div
-                className={`bg-white border-l-4 ${getTypeStyles()} rounded shadow-2xl p-4 w-80 flex items-start`}
-            >
-                <div className="flex-shrink-0">{getIcon()}</div>
-                <div className="ml-3 w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-bold text-gray-900 leading-5">
-                        {type === "success"
-                            ? "Succès"
-                            : type === "warning"
-                                ? "Avertissement"
-                                : type === "info"
-                                    ? "Information"
-                                    : "Erreur"}
-                    </p>
-                    <p className="mt-1 text-sm leading-5 text-gray-600">{message}</p>
-                </div>
-                <div className="ml-4 flex-shrink-0 flex">
-                    <button
-                        onClick={onClose}
-                        className="inline-flex text-gray-400 focus:outline-none focus:text-gray-500 transition ease-in-out duration-150"
-                    >
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path
-                                fillRule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L10 10 5.707 5.707a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+  return (
+    <div
+      className={`fixed top-5 right-5 z-[9999] transition-all duration-500 transform ${
+        show ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+      }`}
+    >
+      <div
+        className={`bg-white border-l-4 ${getTypeStyles()} rounded shadow-2xl p-4 w-80 flex items-start`}
+      >
+        <div className="flex-shrink-0">{getIcon()}</div>
+        <div className="ml-3 w-0 flex-1 pt-0.5">
+          <p className="text-sm font-bold text-gray-900 leading-5">
+            {type === "success"
+              ? "Succès"
+              : type === "warning"
+              ? "Avertissement"
+              : type === "info"
+              ? "Information"
+              : "Erreur"}
+          </p>
+          <p className="mt-1 text-sm leading-5 text-gray-600">{message}</p>
         </div>
-    );
+        <div className="ml-4 flex-shrink-0 flex">
+          <button
+            onClick={onClose}
+            className="inline-flex text-gray-400 focus:outline-none focus:text-gray-500 transition ease-in-out duration-150"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L10 10 5.707 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Composant ConfirmationModal pour les confirmations
 function ConfirmationModal({
-                               show,
-                               title,
-                               message,
-                               onConfirm,
-                               onCancel,
-                               confirmText = "Confirmer",
-                               cancelText = "Annuler",
-                           }) {
-    if (!show) return null;
+  show,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = "Confirmer",
+  cancelText = "Annuler",
+}) {
+  if (!show) return null;
 
-    return (
-        <div className="fixed inset-0 z-[10000] overflow-y-auto">
-            <div className="flex items-center justify-center min-h-screen px-4 text-center">
-                <div
-                    className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                    aria-hidden="true"
-                    onClick={onCancel}
-                />
-                <span
-                    className="hidden sm:inline-block sm:align-middle sm:h-screen"
-                    aria-hidden="true"
-                >
+  return (
+    <div className="fixed inset-0 z-[10000] overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen px-4 text-center">
+        <div
+          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          aria-hidden="true"
+          onClick={onCancel}
+        />
+        <span
+          className="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+        >
           &#8203;
         </span>
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div className="sm:flex sm:items-start">
-                            <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                <svg
-                                    className="h-6 w-6 text-red-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                    {title}
-                                </h3>
-                                <div className="mt-2">
-                                    <p className="text-sm text-gray-500">{message}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button
-                            type="button"
-                            onClick={onConfirm}
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                        >
-                            {confirmText}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                        >
-                            {cancelText}
-                        </button>
-                    </div>
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="sm:flex sm:items-start">
+              <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                <svg
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  {title}
+                </h3>
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500">{message}</p>
                 </div>
+              </div>
             </div>
+          </div>
+          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              {confirmText}
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              {cancelText}
+            </button>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 const SortIcon = ({ isSorted, isAsc }) => {
-    if (!isSorted) {
-        return <ArrowUpDown className="w-3 h-3 text-gray-400" />;
-    }
-    return isAsc ? (
-        <ArrowUp className="w-3 h-3 text-blue-600" />
-    ) : (
-        <ArrowDown className="w-3 h-3 text-blue-600" />
-    );
+  if (!isSorted) {
+    return <ArrowUpDown className="w-3 h-3 text-gray-400" />;
+  }
+  return isAsc ? (
+    <ArrowUp className="w-3 h-3 text-blue-600" />
+  ) : (
+    <ArrowDown className="w-3 h-3 text-blue-600" />
+  );
 };
 
 const ReportsView = ({ onContactReference }) => {
-    const [currentTab, setCurrentTab] = useState("tous");
-    const [filters, setFilters] = useState({
-        search: "",
-        statut: "",
-        dateDebut: "",
-        dateFin: "",
+  const [] = useState("tous");
+  const [filters, setFilters] = useState({
+    search: "",
+    statut: "",
+    dateDebut: "",
+    dateFin: "",
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [reports, setReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("tous");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showReportPreview, setShowReportPreview] = useState(false);
+  const [, setShowDeleteModal] = useState(false);
+  const [selectedReportForAction, setSelectedReportForAction] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({
+    general: true,
+    auteur: true,
+    description: true,
+    pieces: true,
+  });
+  const [sortConfig, setSortConfig] = useState({
+    key: "date",
+    direction: "desc",
+  });
+
+  const [newReport, setNewReport] = useState({
+    category: "",
+    description: "",
+    files: [],
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    type: "identifie",
+  });
+
+  const [statusData, setStatusData] = useState({
+    status: "",
+  });
+  const [editData, setEditData] = useState({});
+  const [reportData, setReportData] = useState({
+    type: "quotidien",
+    dateDebut: new Date().toISOString().split("T")[0],
+    dateFin: new Date().toISOString().split("T")[0],
+    categories: [],
+    notes: "",
+  });
+  const [generatedReport, setGeneratedReport] = useState(null);
+
+  // États pour les toasts
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "error", // error, success, warning, info
+  });
+
+  // États pour la confirmation de suppression
+  const [confirmationModal, setConfirmationModal] = useState({
+    show: false,
+    title: "",
+    message: "",
+    reportId: null,
+    action: null, // 'delete', etc.
+  });
+
+  const categories = [
+    {
+      id: "faux-diplomes",
+      icon: FileText,
+      name: "Faux Diplômes",
+    },
+    {
+      id: "offre-formation-irreguliere",
+      icon: GraduationCap,
+      name: "Offre de formation irrégulière (non habilité)",
+    },
+    {
+      id: "recrutements-irreguliers",
+      icon: Briefcase,
+      name: "Recrutements Irréguliers",
+    },
+    {
+      id: "harcelement",
+      icon: AlertTriangle,
+      name: "Harcèlement",
+    },
+    {
+      id: "corruption",
+      icon: ShieldAlert,
+      name: "Corruption",
+    },
+    {
+      id: "divers",
+      icon: Tag,
+      name: "Divers",
+    },
+  ];
+
+  // Fonction pour afficher un toast
+  const showToastMessage = (message, type = "error") => {
+    setToast({
+      show: true,
+      message,
+      type,
     });
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [reports, setReports] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedReport, setSelectedReport] = useState(null);
-    const [activeCategory, setActiveCategory] = useState("tous");
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showAssignModal, setShowAssignModal] = useState(false);
-    const [showStatusModal, setShowStatusModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [showReportPreview, setShowReportPreview] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedReportForAction, setSelectedReportForAction] = useState(null);
-    const [expandedSections, setExpandedSections] = useState({
-        general: true,
-        auteur: true,
-        description: true,
-        pieces: true,
+
+    // Masquer automatiquement après 5 secondes
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
+
+  // Fonction pour afficher une confirmation
+  const showConfirmationModal = (title, message, reportId, action) => {
+    setConfirmationModal({
+      show: true,
+      title,
+      message,
+      reportId,
+      action,
     });
-    const [sortConfig, setSortConfig] = useState({
-        key: "date",
-        direction: "desc",
+  };
+
+  // Fonction pour fermer la confirmation
+  const closeConfirmationModal = () => {
+    setConfirmationModal({
+      show: false,
+      title: "",
+      message: "",
+      reportId: null,
+      action: null,
     });
+  };
 
-    const [newReport, setNewReport] = useState({
-        category: "",
-        description: "",
-        files: [],
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        type: "identifie",
-    });
+  // Fonction pour gérer la confirmation
+  const handleConfirmation = async () => {
+    const { reportId, action } = confirmationModal;
 
-    const [assignData, setAssignData] = useState({
-        assignTo: "investigateur",
-    });
-    const [statusData, setStatusData] = useState({
-        status: "",
-    });
-    const [editData, setEditData] = useState({});
-    const [reportData, setReportData] = useState({
-        type: "quotidien",
-        dateDebut: new Date().toISOString().split("T")[0],
-        dateFin: new Date().toISOString().split("T")[0],
-        categories: [],
-        notes: "",
-    });
-    const [generatedReport, setGeneratedReport] = useState(null);
+    if (!reportId) {
+      closeConfirmationModal();
+      return;
+    }
 
-    // États pour les toasts
-    const [toast, setToast] = useState({
-        show: false,
-        message: "",
-        type: "error", // error, success, warning, info
-    });
+    try {
+      if (action === "delete") {
+        await API.delete(`/reports/${reportId}`);
+        showToastMessage("Signalement supprimé avec succès", "success");
 
-    // États pour la confirmation de suppression
-    const [confirmationModal, setConfirmationModal] = useState({
-        show: false,
-        title: "",
-        message: "",
-        reportId: null,
-        action: null, // 'delete', etc.
-    });
-
-    const categories = [
-        {
-            id: "faux-diplomes",
-            icon: FileText,
-            name: "Faux Diplômes",
-        },
-        {
-            id: "offre-formation-irreguliere",
-            icon: GraduationCap,
-            name: "Offre de formation irrégulière (non habilité)",
-        },
-        {
-            id: "recrutements-irreguliers",
-            icon: Briefcase,
-            name: "Recrutements Irréguliers",
-        },
-        {
-            id: "harcelement",
-            icon: AlertTriangle,
-            name: "Harcèlement",
-        },
-        {
-            id: "corruption",
-            icon: ShieldAlert,
-            name: "Corruption",
-        },
-        {
-            id: "divers",
-            icon: Tag,
-            name: "Divers",
-        },
-    ];
-
-    const assignToOptions = [
-        { value: "investigateur", label: "Investigateur" },
-        { value: "cac_daj", label: "DAAQ / CAC / DAJ" },
-        { value: "autorite_competente", label: "Autorité compétente" },
-    ];
-
-    // Fonction pour afficher un toast
-    const showToastMessage = (message, type = "error") => {
-        setToast({
-            show: true,
-            message,
-            type,
-        });
-
-        // Masquer automatiquement après 5 secondes
-        setTimeout(() => {
-            setToast((prev) => ({ ...prev, show: false }));
-        }, 5000);
-    };
-
-    // Fonction pour afficher une confirmation
-    const showConfirmationModal = (title, message, reportId, action) => {
-        setConfirmationModal({
-            show: true,
-            title,
-            message,
-            reportId,
-            action,
-        });
-    };
-
-    // Fonction pour fermer la confirmation
-    const closeConfirmationModal = () => {
-        setConfirmationModal({
-            show: false,
-            title: "",
-            message: "",
-            reportId: null,
-            action: null,
-        });
-    };
-
-    // Fonction pour gérer la confirmation
-    const handleConfirmation = async () => {
-        const { reportId, action } = confirmationModal;
-
-        if (!reportId) {
-            closeConfirmationModal();
-            return;
+        setShowDeleteModal(false);
+        if (selectedReport?.id === reportId) {
+          setSelectedReport(null);
         }
 
-        try {
-            if (action === "delete") {
-                await API.delete(`/reports/${reportId}`);
-                showToastMessage("Signalement supprimé avec succès", "success");
-
-                setShowDeleteModal(false);
-                if (selectedReport?.id === reportId) {
-                    setSelectedReport(null);
-                }
-
-                await fetchReports();
-            }
-        } catch (error) {
-            if (error.response?.status === 404) {
-                await fetchReports();
-                showToastMessage("Signalement supprimé", "info");
-            } else if (error.response?.status === 403) {
-                showToastMessage(
-                    "Vous n'avez pas les droits pour supprimer ce signalement",
-                    "error"
-                );
-            } else {
-                showToastMessage(
-                    `Erreur: ${error.response?.data?.message || error.message}`,
-                    "error"
-                );
-            }
-        }
-
-        closeConfirmationModal();
-    };
-
-    const fetchReports = async () => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await API.get("/reports?per_page=1000");
-            const result = response.data;
-
-            if (result.success && Array.isArray(result.data)) {
-                const mappedReports = result.data.map((report) => {
-                    let filesArray = [];
-                    try {
-                        if (report.files) {
-                            if (typeof report.files === "string") {
-                                filesArray = JSON.parse(report.files);
-                            } else if (Array.isArray(report.files)) {
-                                filesArray = report.files;
-                            }
-                        }
-                    } catch (e) {}
-
-                    // Créer une description abrégée
-                    const fullDescription = report.description || "Aucune description";
-                    const shortDescription =
-                        fullDescription.length > 80
-                            ? fullDescription.substring(0, 80) + "..."
-                            : fullDescription;
-
-                    return {
-                        id: report.id,
-                        reference: report.reference,
-                        date: report.created_at,
-                        nom_prenom: report.is_anonymous
-                            ? "Anonyme"
-                            : report.name || "Non spécifié",
-                        telephone: report.phone || "N/A",
-                        email: report.email || "N/A",
-                        categorie: report.category,
-                        categorieLabel: report.category,
-                        raison: report.title || "Non spécifié",
-                        type_signalement: report.is_anonymous ? "Anonyme" : "Non-Anonyme",
-                        explication: report.description || "Aucune description",
-                        shortDescription: shortDescription,
-                        files: filesArray,
-                        status: report.status || "en_cours",
-                        assigned_to: report.assigned_to || "Non assigné",
-                        city: report.city,
-                        province: report.province,
-                        region: report.region,
-                        has_proof: report.has_proof || false,
-                    };
-                });
-
-                setReports(mappedReports);
-            } else {
-                setReports([]);
-            }
-        } catch (error) {
-            setError(error.response?.data?.message || error.message);
-            showToastMessage("Erreur lors du chargement des signalements", "error");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchReports();
-    }, []);
-
-    const calculateCategoryStats = (categoryId) => {
-        if (categoryId === "tous") {
-            const total = reports.length;
-            const encours = reports.filter(
-                (report) => report.status === "en_cours"
-            ).length;
-            const resolus = reports.filter(
-                (report) => report.status === "classifier"
-            ).length;
-            return { total, encours, resolus };
-        }
-
-        const categoryReports = reports.filter(
-            (report) => report.categorie === categoryId
+        await fetchReports();
+      }
+    } catch (error) {
+      if (error.response?.status === 404) {
+        await fetchReports();
+        showToastMessage("Signalement supprimé", "info");
+      } else if (error.response?.status === 403) {
+        showToastMessage(
+          "Vous n'avez pas les droits pour supprimer ce signalement",
+          "error"
         );
-        const total = categoryReports.length;
-        const encours = categoryReports.filter(
-            (report) => report.status === "en_cours"
-        ).length;
-        const resolus = categoryReports.filter(
-            (report) => report.status === "classifier"
-        ).length;
-
-        return { total, encours, resolus };
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "-";
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
-        } catch (e) {
-            return dateString;
-        }
-    };
-
-    const getDisplayStatus = (status) => {
-        const statusMap = {
-            en_cours: "En cours",
-            investigation: "Ouverture d'enquêtes",
-            transmis_autorite: "Transmis aux autorités compétentes",
-            classifier: "Dossier classé sans suite",
-        };
-        return statusMap[status] || status;
-    };
-
-    const getDisplayAssignedTo = (assignedTo) => {
-        const assignMap = {
-            investigateur: "Investigateur",
-            cac_daj: "DAAQ / CAC / DAJ",
-            autorite_competente: "Autorité compétente",
-        };
-        return assignMap[assignedTo] || assignedTo || "Non assigné";
-    };
-
-    const allReports = useMemo(() => {
-        const sortedReports = [...reports].sort((a, b) => {
-            if (!sortConfig.key) return 0;
-
-            let aValue = a[sortConfig.key];
-            let bValue = b[sortConfig.key];
-
-            if (sortConfig.key === "date") {
-                aValue = new Date(aValue);
-                bValue = new Date(bValue);
-            }
-
-            if (sortConfig.key === "reference") {
-                aValue = aValue.toLowerCase();
-                bValue = bValue.toLowerCase();
-            }
-
-            if (aValue < bValue) {
-                return sortConfig.direction === "asc" ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return sortConfig.direction === "asc" ? 1 : -1;
-            }
-            return 0;
-        });
-
-        return sortedReports;
-    }, [reports, sortConfig]);
-
-    const filteredReports = useMemo(() => {
-        let baseReports = allReports;
-
-        if (activeCategory !== "tous") {
-            baseReports = baseReports.filter(
-                (report) => report.categorie === activeCategory
-            );
-        }
-
-        // Filtre par date
-        if (filters.dateDebut || filters.dateFin) {
-            baseReports = baseReports.filter((report) => {
-                const reportDate = new Date(report.date);
-                const startDate = filters.dateDebut
-                    ? new Date(filters.dateDebut)
-                    : null;
-                const endDate = filters.dateFin ? new Date(filters.dateFin) : null;
-
-                let matchDate = true;
-
-                if (startDate) {
-                    matchDate = matchDate && reportDate >= startDate;
-                }
-
-                if (endDate) {
-                    const endDatePlusOne = new Date(endDate);
-                    endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
-                    matchDate = matchDate && reportDate < endDatePlusOne;
-                }
-
-                return matchDate;
-            });
-        }
-
-        return baseReports.filter((report) => {
-            const matchSearch =
-                !filters.search ||
-                report.reference.toLowerCase().includes(filters.search.toLowerCase()) ||
-                report.nom_prenom
-                    .toLowerCase()
-                    .includes(filters.search.toLowerCase()) ||
-                (report.categorieLabel &&
-                    report.categorieLabel
-                        .toLowerCase()
-                        .includes(filters.search.toLowerCase())) ||
-                report.explication.toLowerCase().includes(filters.search.toLowerCase());
-
-            const matchStatut = !filters.statut || report.status === filters.statut;
-
-            return matchSearch && matchStatut;
-        });
-    }, [allReports, filters, activeCategory]);
-
-    const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const paginatedReports = filteredReports.slice(
-        indexOfFirstItem,
-        indexOfLastItem
-    );
-
-    const getPageNumbers = () => {
-        const pages = [];
-        const maxVisible = 5;
-
-        if (totalPages <= maxVisible + 2) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i);
-            }
-        } else {
-            pages.push(1);
-
-            let startPage = Math.max(2, currentPage - 2);
-            let endPage = Math.min(totalPages - 1, currentPage + 2);
-
-            if (currentPage <= 3) {
-                endPage = maxVisible;
-            }
-
-            if (currentPage >= totalPages - 2) {
-                startPage = totalPages - maxVisible + 1;
-            }
-
-            if (startPage > 2) {
-                pages.push("...");
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pages.push(i);
-            }
-
-            if (endPage < totalPages - 1) {
-                pages.push("...");
-            }
-
-            pages.push(totalPages);
-        }
-
-        return pages;
-    };
-
-    const handleSort = (key) => {
-        setSortConfig((current) => ({
-            key,
-            direction:
-                current.key === key && current.direction === "asc" ? "desc" : "asc",
-        }));
-        setCurrentPage(1);
-    };
-
-    const handleFilterChange = (key, value) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-        setCurrentPage(1);
-    };
-
-    const resetFilters = () => {
-        setFilters({
-            search: "",
-            statut: "",
-            dateDebut: "",
-            dateFin: "",
-        });
-        setCurrentPage(1);
-    };
-
-    const exportReports = () => {
-        const csvContent = [
-            [
-                "ID",
-                "RÉFÉRENCE",
-                "DATE",
-                "NOM / PRÉNOM",
-                "CATÉGORIE",
-                "STATUT",
-                "DESCRIPTION",
-            ],
-            ...filteredReports.map((report) => [
-                report.id,
-                report.reference,
-                formatDate(report.date),
-                report.nom_prenom,
-                report.categorieLabel || "N/A",
-                getDisplayStatus(report.status),
-                report.explication,
-            ]),
-        ]
-            .map((row) => row.map((field) => `"${field}"`).join(","))
-            .join("\n");
-
-        const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-        });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute("href", url);
-        link.setAttribute(
-            "download",
-            `signalements_${new Date().toISOString().split("T")[0]}.csv`
+      } else {
+        showToastMessage(
+          `Erreur: ${error.response?.data?.message || error.message}`,
+          "error"
         );
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToastMessage("Export CSV réalisé avec succès", "success");
-    };
+      }
+    }
 
-    const handleViewReport = (report) => {
-        setSelectedReport(selectedReport?.id === report.id ? null : report);
-        setExpandedSections({
-            general: true,
-            auteur: true,
-            description: true,
-            pieces: true,
-        });
-    };
+    closeConfirmationModal();
+  };
 
-    const handlePrintReport = (report) => {
-        setSelectedReport(report);
+  const fetchReports = async () => {
+    setIsLoading(true);
+    setError(null);
 
-        setTimeout(() => {
-            const printContent = document.querySelector(".print-section");
-            if (printContent) {
-                const originalContents = document.body.innerHTML;
-                const printContents = printContent.innerHTML;
+    try {
+      const response = await API.get("/reports?per_page=1000");
+      const result = response.data;
 
-                document.body.innerHTML = printContents;
-                window.print();
-                document.body.innerHTML = originalContents;
-
-                // Recharger la page pour restaurer l'état
-                window.location.reload();
+      if (result.success && Array.isArray(result.data)) {
+        const mappedReports = result.data.map((report) => {
+          let filesArray = [];
+          try {
+            if (report.files) {
+              if (typeof report.files === "string") {
+                filesArray = JSON.parse(report.files);
+              } else if (Array.isArray(report.files)) {
+                filesArray = report.files;
+              }
             }
-        }, 500);
-    };
+          } catch (e) {}
 
-    const handleAssignReport = (report) => {
-        setSelectedReportForAction(report);
-        setAssignData({
-            assignTo: report.assigned_to || "investigateur",
-        });
-        setShowAssignModal(true);
-    };
+          // Créer une description abrégée
+          const fullDescription = report.description || "Aucune description";
+          const shortDescription =
+            fullDescription.length > 80
+              ? fullDescription.substring(0, 80) + "..."
+              : fullDescription;
 
-    const handleStatusUpdate = (report) => {
-        setSelectedReportForAction(report);
-        setStatusData({
-            status: report.status === "en_cours" ? "" : report.status || "",
-        });
-        setShowStatusModal(true);
-    };
-
-    const handleEditReport = (report) => {
-        setSelectedReportForAction(report);
-        setEditData({
-            category: report.categorie,
-            description: report.explication,
-            nom_prenom: report.nom_prenom,
-            email: report.email,
-            telephone: report.telephone,
+          return {
+            id: report.id,
+            reference: report.reference,
+            date: report.created_at,
+            nom_prenom: report.is_anonymous
+              ? "Anonyme"
+              : report.name || "Non spécifié",
+            telephone: report.phone || "N/A",
+            email: report.email || "N/A",
+            categorie: report.category,
+            categorieLabel: report.category,
+            raison: report.title || "Non spécifié",
+            type_signalement: report.is_anonymous ? "Anonyme" : "Non-Anonyme",
+            explication: report.description || "Aucune description",
+            shortDescription: shortDescription,
+            files: filesArray,
+            status: report.status || "en_cours",
+            assigned_to: report.assigned_to || "Non assigné",
             city: report.city,
             province: report.province,
             region: report.region,
+            has_proof: report.has_proof || false,
+          };
         });
-        setShowEditModal(true);
-    };
 
-    const handleDeleteReport = (report) => {
-        setSelectedReportForAction(report);
-        showConfirmationModal(
-            "Supprimer ce signalement ?",
-            "Cette action est irréversible. Le signalement sera définitivement supprimé.",
-            report.id,
-            "delete"
+        setReports(mappedReports);
+      } else {
+        setReports([]);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || error.message);
+      showToastMessage("Erreur lors du chargement des signalements", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const calculateCategoryStats = (categoryId) => {
+    if (categoryId === "tous") {
+      const total = reports.length;
+      const encours = reports.filter(
+        (report) => report.status === "en_cours"
+      ).length;
+      const resolus = reports.filter(
+        (report) => report.status === "classifier"
+      ).length;
+      return { total, encours, resolus };
+    }
+
+    const categoryReports = reports.filter(
+      (report) => report.categorie === categoryId
+    );
+    const total = categoryReports.length;
+    const encours = categoryReports.filter(
+      (report) => report.status === "en_cours"
+    ).length;
+    const resolus = categoryReports.filter(
+      (report) => report.status === "classifier"
+    ).length;
+
+    return { total, encours, resolus };
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const getDisplayStatus = (status) => {
+    const statusMap = {
+      en_cours: "En cours",
+      investigation: "Ouverture d'enquêtes",
+      transmis_autorite: "Transmis aux autorités compétentes",
+      classifier: "Dossier classé sans suite",
+    };
+    return statusMap[status] || status;
+  };
+
+  const getDisplayAssignedTo = (assignedTo) => {
+    const assignMap = {
+      investigateur: "Investigateur",
+      cac_daj: "DAAQ / CAC / DAJ",
+      autorite_competente: "Autorité compétente",
+    };
+    return assignMap[assignedTo] || assignedTo || "Non assigné";
+  };
+
+  const allReports = useMemo(() => {
+    const sortedReports = [...reports].sort((a, b) => {
+      if (!sortConfig.key) return 0;
+
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      if (sortConfig.key === "date") {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+
+      if (sortConfig.key === "reference") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sortedReports;
+  }, [reports, sortConfig]);
+
+  const filteredReports = useMemo(() => {
+    let baseReports = allReports;
+
+    if (activeCategory !== "tous") {
+      baseReports = baseReports.filter(
+        (report) => report.categorie === activeCategory
+      );
+    }
+
+    // Filtre par date
+    if (filters.dateDebut || filters.dateFin) {
+      baseReports = baseReports.filter((report) => {
+        const reportDate = new Date(report.date);
+        const startDate = filters.dateDebut
+          ? new Date(filters.dateDebut)
+          : null;
+        const endDate = filters.dateFin ? new Date(filters.dateFin) : null;
+
+        let matchDate = true;
+
+        if (startDate) {
+          matchDate = matchDate && reportDate >= startDate;
+        }
+
+        if (endDate) {
+          const endDatePlusOne = new Date(endDate);
+          endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+          matchDate = matchDate && reportDate < endDatePlusOne;
+        }
+
+        return matchDate;
+      });
+    }
+
+    return baseReports.filter((report) => {
+      const matchSearch =
+        !filters.search ||
+        report.reference.toLowerCase().includes(filters.search.toLowerCase()) ||
+        report.nom_prenom
+          .toLowerCase()
+          .includes(filters.search.toLowerCase()) ||
+        (report.categorieLabel &&
+          report.categorieLabel
+            .toLowerCase()
+            .includes(filters.search.toLowerCase())) ||
+        report.explication.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchStatut = !filters.statut || report.status === filters.statut;
+
+      return matchSearch && matchStatut;
+    });
+  }, [allReports, filters, activeCategory]);
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedReports = filteredReports.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      let startPage = Math.max(2, currentPage - 2);
+      let endPage = Math.min(totalPages - 1, currentPage + 2);
+
+      if (currentPage <= 3) {
+        endPage = maxVisible;
+      }
+
+      if (currentPage >= totalPages - 2) {
+        startPage = totalPages - maxVisible + 1;
+      }
+
+      if (startPage > 2) {
+        pages.push("...");
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
+
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const handleSort = (key) => {
+    setSortConfig((current) => ({
+      key,
+      direction:
+        current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      search: "",
+      statut: "",
+      dateDebut: "",
+      dateFin: "",
+    });
+    setCurrentPage(1);
+  };
+
+  const exportReports = () => {
+    const csvContent = [
+      [
+        "ID",
+        "RÉFÉRENCE",
+        "DATE",
+        "NOM / PRÉNOM",
+        "CATÉGORIE",
+        "STATUT",
+        "DESCRIPTION",
+      ],
+      ...filteredReports.map((report) => [
+        report.id,
+        report.reference,
+        formatDate(report.date),
+        report.nom_prenom,
+        report.categorieLabel || "N/A",
+        getDisplayStatus(report.status),
+        report.explication,
+      ]),
+    ]
+      .map((row) => row.map((field) => `"${field}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `signalements_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToastMessage("Export CSV réalisé avec succès", "success");
+  };
+
+  const handleViewReport = (report) => {
+    setSelectedReport(selectedReport?.id === report.id ? null : report);
+    setExpandedSections({
+      general: true,
+      auteur: true,
+      description: true,
+      pieces: true,
+    });
+  };
+
+  const handlePrintReport = (report) => {
+    setSelectedReport(report);
+
+    setTimeout(() => {
+      const printContent = document.querySelector(".print-section");
+      if (printContent) {
+        const originalContents = document.body.innerHTML;
+        const printContents = printContent.innerHTML;
+
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+
+        // Recharger la page pour restaurer l'état
+        window.location.reload();
+      }
+    }, 500);
+  };
+
+  const handleStatusUpdate = (report) => {
+    setSelectedReportForAction(report);
+    setStatusData({
+      status: report.status === "en_cours" ? "" : report.status || "",
+    });
+    setShowStatusModal(true);
+  };
+
+  const handleEditReport = (report) => {
+    setSelectedReportForAction(report);
+    setEditData({
+      category: report.categorie,
+      description: report.explication,
+      nom_prenom: report.nom_prenom,
+      email: report.email,
+      telephone: report.telephone,
+      city: report.city,
+      province: report.province,
+      region: report.region,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleDeleteReport = (report) => {
+    setSelectedReportForAction(report);
+    showConfirmationModal(
+      "Supprimer ce signalement ?",
+      "Cette action est irréversible. Le signalement sera définitivement supprimé.",
+      report.id,
+      "delete"
+    );
+  };
+
+  const handleContactReport = (report) => {
+    if (onContactReference) {
+      onContactReference(report.reference);
+    } else {
+      // Fallback si le callback n'est pas fourni
+      showToastMessage("Fonction de contact non disponible", "warning");
+    }
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const handleDownloadFile = async (fileName) => {
+    try {
+      // ✅ SOLUTION 2: Nettoyer le nom de fichier
+      const cleanFilename = fileName
+        .replace(/^admin\//, "") // Enlever 'admin/' au début
+        .replace(/^\//, "") // Enlever '/' au début
+        .split("/")
+        .pop(); // Prendre seulement le nom du fichier
+
+      const encodedFileName = encodeURIComponent(cleanFilename);
+
+      console.log("📥 Téléchargement fichier:", cleanFilename);
+
+      // ✅ Utiliser la route publique sans authentification
+      const response = await API.get(
+        `/files/public/${encodedFileName}/download`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", cleanFilename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("✅ Téléchargement réussi");
+      showToastMessage("Fichier téléchargé avec succès", "success");
+    } catch (error) {
+      console.error("❌ Erreur téléchargement:", error);
+      showToastMessage("Erreur lors du téléchargement du fichier", "error");
+    }
+  };
+
+  const handleViewFile = (fileName) => {
+    // ✅ SOLUTION 2: Nettoyer le nom de fichier
+    const cleanFilename = fileName
+      .replace(/^admin\//, "") // Enlever 'admin/' au début
+      .replace(/^\//, "") // Enlever '/' au début
+      .split("/")
+      .pop(); // Prendre seulement le nom du fichier
+
+    const encodedFileName = encodeURIComponent(cleanFilename);
+
+    console.log("👁️ Ouverture fichier:", cleanFilename);
+
+    // ✅ Utiliser la route publique sans authentification
+    const fileUrl = `${API.defaults.baseURL}/files/public/${encodedFileName}`;
+    window.open(fileUrl, "_blank");
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setNewReport((prev) => ({
+      ...prev,
+      files: [...prev.files, ...files],
+    }));
+  };
+
+  const removeFile = (index) => {
+    setNewReport((prev) => ({
+      ...prev,
+      files: prev.files.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleCreateReport = async (e) => {
+    e.preventDefault();
+
+    if (!newReport.category) {
+      showToastMessage("Veuillez sélectionner une catégorie", "error");
+      return;
+    }
+    if (!newReport.description) {
+      showToastMessage("La description est obligatoire", "error");
+      return;
+    }
+    if (newReport.type === "identifie" && !newReport.name) {
+      showToastMessage(
+        "Le nom est obligatoire pour un signalement identifié",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+
+      formData.append("type", newReport.type);
+      formData.append("name", newReport.name || "Anonyme");
+      formData.append("category", newReport.category);
+      formData.append("description", newReport.description);
+      formData.append("accept_terms", 1);
+      formData.append("accept_truth", 1);
+
+      if (newReport.email && newReport.email.trim()) {
+        formData.append("email", newReport.email.trim());
+      }
+      if (newReport.phone && newReport.phone.trim()) {
+        formData.append("phone", newReport.phone.trim());
+      }
+      if (newReport.address && newReport.address.trim()) {
+        formData.append("address", newReport.address.trim());
+      }
+
+      if (newReport.files.length > 0) {
+        newReport.files.forEach((file) => {
+          formData.append("files[]", file);
+        });
+      }
+
+      const response = await API.post("/reports", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        setNewReport({
+          category: "",
+          description: "",
+          files: [],
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          type: "identifie",
+        });
+
+        setShowCreateModal(false);
+        await fetchReports();
+
+        showToastMessage(
+          `Signalement créé avec succès! Référence: ${response.data.reference}`,
+          "success"
         );
-    };
+      }
+    } catch (error) {
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors || {};
+        const errorMessages = Object.entries(errors)
+          .map(
+            ([field, messages]) =>
+              `• ${field}: ${
+                Array.isArray(messages) ? messages.join(", ") : messages
+              }`
+          )
+          .join("\n");
 
-    const handleContactReport = (report) => {
-        if (onContactReference) {
-            onContactReference(report.reference);
+        showToastMessage(`Erreur de validation:\n\n${errorMessages}`, "error");
+      } else {
+        showToastMessage(
+          `Erreur: ${error.response?.data?.message || error.message}`,
+          "error"
+        );
+      }
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedReportForAction) return;
+
+    try {
+      const isAnonymous =
+        selectedReportForAction.type_signalement === "Anonyme";
+
+      const updateData = {
+        category: editData.category,
+        description: editData.description,
+        ...(!isAnonymous && {
+          nom_prenom: editData.nom_prenom,
+          email: editData.email,
+          telephone: editData.telephone,
+        }),
+        city: editData.city,
+        province: editData.province,
+        region: editData.region,
+        type_signalement: isAnonymous ? "anonyme" : "non-anonyme",
+      };
+
+      // Vérifier si on essaie d'ajouter des preuves à un signalement sans preuves
+      const hasNoProofInitially =
+        selectedReportForAction.files &&
+        selectedReportForAction.files.length === 0;
+      const isAddingProof = editData.newFiles && editData.newFiles.length > 0;
+
+      if (hasNoProofInitially && isAddingProof) {
+        // Avertir l'utilisateur
+        showToastMessage(
+          "⚠️ Vous ne pouvez pas ajouter des preuves à un signalement qui n'en avait pas initialement. " +
+            "Veuillez créer un nouveau signalement avec les preuves nécessaires.",
+          "warning"
+        );
+        return;
+      }
+
+      // Gérer les fichiers séparément (si autorisé)
+      if (
+        (editData.newFiles && editData.newFiles.length > 0) ||
+        (editData.filesToRemove && editData.filesToRemove.length > 0)
+      ) {
+        try {
+          const formData = new FormData();
+
+          if (editData.filesToRemove && editData.filesToRemove.length > 0) {
+            editData.filesToRemove.forEach((filename, index) => {
+              formData.append(`files_to_remove[${index}]`, filename);
+            });
+          }
+
+          if (editData.newFiles && editData.newFiles.length > 0) {
+            editData.newFiles.forEach((file, index) => {
+              formData.append(`new_files[${index}]`, file);
+            });
+          }
+
+          const filesResponse = await API.post(
+            `/reports/${selectedReportForAction.id}/files`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (filesResponse.data.success) {
+            showToastMessage("Fichiers mis à jour avec succès", "success");
+          }
+        } catch (filesError) {
+          // Gérer spécifiquement l'erreur d'ajout de preuves
+          if (
+            filesError.response?.status === 403 &&
+            filesError.response?.data?.message ===
+              "Ce signalement ne peut plus être modifié"
+          ) {
+            showToastMessage(
+              "❌ Impossible d'ajouter des preuves : Ce signalement ne peut plus être modifié. " +
+                "Pour ajouter des preuves, créez un nouveau signalement.",
+              "error"
+            );
+          } else if (filesError.response?.status === 403) {
+            showToastMessage(
+              "❌ Permission refusée pour modifier les pièces jointes. " +
+                "Ce signalement a peut-être déjà été traité ou classé.",
+              "error"
+            );
+          }
+        }
+      }
+
+      await fetchReports();
+      setShowEditModal(false);
+      setSelectedReportForAction(null);
+
+      if (selectedReport?.id === selectedReportForAction.id) {
+        setSelectedReport((prev) => ({ ...prev, ...updateData }));
+      }
+
+      showToastMessage("Signalement modifié avec succès", "success");
+    } catch (error) {
+      // Gestion spécifique de l'erreur 403 avec message personnalisé
+      if (error.response?.status === 403 && error.response?.data?.message) {
+        const message = error.response.data.message;
+
+        if (message.includes("ne peut plus être modifié")) {
+          showToastMessage(
+            `❌ Modification impossible : ${message}\n\n` +
+              `• Pour ajouter des preuves, créez un nouveau signalement\n` +
+              `• Pour modifier les informations, contactez l'administrateur\n` +
+              `• Ce signalement a probablement été traité ou archivé`,
+            "error"
+          );
         } else {
-            // Fallback si le callback n'est pas fourni
-            showToastMessage("Fonction de contact non disponible", "warning");
+          showToastMessage(`Permission refusée : ${message}`, "error");
         }
-    };
+      } else if (
+        error.response?.status === 422 &&
+        error.response?.data?.errors
+      ) {
+        const errorMessages = Object.entries(error.response.data.errors)
+          .map(
+            ([field, messages]) =>
+              `• ${field}: ${
+                Array.isArray(messages) ? messages.join(", ") : messages
+              }`
+          )
+          .join("\n");
 
-    const toggleSection = (section) => {
-        setExpandedSections((prev) => ({
-            ...prev,
-            [section]: !prev[section],
-        }));
-    };
+        showToastMessage(`Erreurs de validation:\n${errorMessages}`, "error");
+      } else {
+        showToastMessage(
+          "Erreur lors de la modification: " +
+            (error.response?.data?.message || error.message),
+          "error"
+        );
+      }
+    }
+  };
 
-    const handleDownloadFile = async (fileName) => {
-        try {
-            // ✅ SOLUTION 2: Nettoyer le nom de fichier
-            const cleanFilename = fileName
-                .replace(/^admin\//, "") // Enlever 'admin/' au début
-                .replace(/^\//, "") // Enlever '/' au début
-                .split("/")
-                .pop(); // Prendre seulement le nom du fichier
+  const handleStatusSubmit = async (e) => {
+    e.preventDefault();
 
-            const encodedFileName = encodeURIComponent(cleanFilename);
+    if (!selectedReportForAction || !statusData.status) {
+      showToastMessage("Veuillez sélectionner un statut", "error");
+      return;
+    }
 
-            console.log("📥 Téléchargement fichier:", cleanFilename);
-
-            // ✅ Utiliser la route publique sans authentification
-            const response = await API.get(
-                `/files/public/${encodedFileName}/download`,
-                {
-                    responseType: "blob",
-                }
-            );
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", cleanFilename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
-            console.log("✅ Téléchargement réussi");
-            showToastMessage("Fichier téléchargé avec succès", "success");
-        } catch (error) {
-            console.error("❌ Erreur téléchargement:", error);
-            showToastMessage("Erreur lors du téléchargement du fichier", "error");
+    try {
+      const response = await API.put(
+        `/reports/${selectedReportForAction.id}/status`,
+        {
+          status: statusData.status,
         }
+      );
+
+      if (response.data.success) {
+        showToastMessage(
+          `Statut mis à jour avec succès !\nNouveau statut: ${getDisplayStatus(
+            statusData.status
+          )}`,
+          "success"
+        );
+
+        setShowStatusModal(false);
+        setStatusData({
+          status: "",
+        });
+        setSelectedReportForAction(null);
+
+        await fetchReports();
+      }
+    } catch (error) {
+      showToastMessage(
+        `Erreur: ${error.response?.data?.message || error.message}`,
+        "error"
+      );
+    }
+  };
+
+  const generateReport = (e) => {
+    e.preventDefault();
+
+    const selectedCategories =
+      reportData.categories.length > 0
+        ? categories
+            .filter((cat) => reportData.categories.includes(cat.id))
+            .map((cat) => cat.name)
+        : ["Toutes les catégories"];
+
+    const reportStats = {
+      total: filteredReports.length,
+      en_cours: filteredReports.filter((r) => r.status === "en_cours").length,
+      transmis_autorite: filteredReports.filter(
+        (r) => r.status === "transmis_autorite"
+      ).length,
+      classifier: filteredReports.filter((r) => r.status === "classifier")
+        .length,
+      investigation: filteredReports.filter((r) => r.status === "investigation")
+        .length,
     };
 
-    const handleViewFile = (fileName) => {
-        // ✅ SOLUTION 2: Nettoyer le nom de fichier
-        const cleanFilename = fileName
-            .replace(/^admin\//, "") // Enlever 'admin/' au début
-            .replace(/^\//, "") // Enlever '/' au début
-            .split("/")
-            .pop(); // Prendre seulement le nom du fichier
-
-        const encodedFileName = encodeURIComponent(cleanFilename);
-
-        console.log("👁️ Ouverture fichier:", cleanFilename);
-
-        // ✅ Utiliser la route publique sans authentification
-        const fileUrl = `${API.defaults.baseURL}/files/public/${encodedFileName}`;
-        window.open(fileUrl, "_blank");
+    const generatedReportData = {
+      type: reportData.type,
+      periode: `${formatDate(reportData.dateDebut)} - ${formatDate(
+        reportData.dateFin
+      )}`,
+      categories: selectedCategories,
+      notes: reportData.notes,
+      stats: reportStats,
+      dateGeneration: new Date().toLocaleDateString("fr-FR"),
+      heureGeneration: new Date().toLocaleTimeString("fr-FR"),
     };
 
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        setNewReport((prev) => ({
-            ...prev,
-            files: [...prev.files, ...files],
-        }));
-    };
+    setGeneratedReport(generatedReportData);
+    setShowReportPreview(true);
+    showToastMessage("Rapport généré avec succès", "success");
+  };
 
-    const removeFile = (index) => {
-        setNewReport((prev) => ({
-            ...prev,
-            files: prev.files.filter((_, i) => i !== index),
-        }));
-    };
+  const exportToPDF = () => {
+    const element = document.getElementById("report-preview");
 
-    const handleCreateReport = async (e) => {
-        e.preventDefault();
+    html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    })
+      .then((canvas) => {
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
 
-        if (!newReport.category) {
-            showToastMessage("Veuillez sélectionner une catégorie", "error");
-            return;
-        }
-        if (!newReport.description) {
-            showToastMessage("La description est obligatoire", "error");
-            return;
-        }
-        if (newReport.type === "identifie" && !newReport.name) {
-            showToastMessage(
-                "Le nom est obligatoire pour un signalement identifié",
-                "error"
-            );
-            return;
-        }
+        const pdf = new jsPDF("p", "mm", "a4");
+        let pageCount = 1;
 
-        try {
-            const formData = new FormData();
+        let imgData = canvas.toDataURL("image/jpeg", 0.98);
 
-            formData.append("type", newReport.type);
-            formData.append("name", newReport.name || "Anonyme");
-            formData.append("category", newReport.category);
-            formData.append("description", newReport.description);
-            formData.append("accept_terms", 1);
-            formData.append("accept_truth", 1);
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
 
-            if (newReport.email && newReport.email.trim()) {
-                formData.append("email", newReport.email.trim());
-            }
-            if (newReport.phone && newReport.phone.trim()) {
-                formData.append("phone", newReport.phone.trim());
-            }
-            if (newReport.address && newReport.address.trim()) {
-                formData.append("address", newReport.address.trim());
-            }
-
-            if (newReport.files.length > 0) {
-                newReport.files.forEach((file) => {
-                    formData.append("files[]", file);
-                });
-            }
-
-            const response = await API.post("/reports", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            if (response.data.success) {
-                setNewReport({
-                    category: "",
-                    description: "",
-                    files: [],
-                    name: "",
-                    email: "",
-                    phone: "",
-                    address: "",
-                    type: "identifie",
-                });
-
-                setShowCreateModal(false);
-                await fetchReports();
-
-                showToastMessage(
-                    `Signalement créé avec succès! Référence: ${response.data.reference}`,
-                    "success"
-                );
-            }
-        } catch (error) {
-            if (error.response?.status === 422) {
-                const errors = error.response.data.errors || {};
-                const errorMessages = Object.entries(errors)
-                    .map(
-                        ([field, messages]) =>
-                            `• ${field}: ${
-                                Array.isArray(messages) ? messages.join(", ") : messages
-                            }`
-                    )
-                    .join("\n");
-
-                showToastMessage(`Erreur de validation:\n\n${errorMessages}`, "error");
-            } else {
-                showToastMessage(
-                    `Erreur: ${error.response?.data?.message || error.message}`,
-                    "error"
-                );
-            }
-        }
-    };
-
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!selectedReportForAction) return;
-
-        try {
-            const isAnonymous =
-                selectedReportForAction.type_signalement === "Anonyme";
-
-            const updateData = {
-                category: editData.category,
-                description: editData.description,
-                ...(!isAnonymous && {
-                    nom_prenom: editData.nom_prenom,
-                    email: editData.email,
-                    telephone: editData.telephone,
-                }),
-                city: editData.city,
-                province: editData.province,
-                region: editData.region,
-                type_signalement: isAnonymous ? "anonyme" : "non-anonyme",
-            };
-
-            // Vérifier si on essaie d'ajouter des preuves à un signalement sans preuves
-            const hasNoProofInitially =
-                selectedReportForAction.files &&
-                selectedReportForAction.files.length === 0;
-            const isAddingProof = editData.newFiles && editData.newFiles.length > 0;
-
-            if (hasNoProofInitially && isAddingProof) {
-                // Avertir l'utilisateur
-                showToastMessage(
-                    "⚠️ Vous ne pouvez pas ajouter des preuves à un signalement qui n'en avait pas initialement. " +
-                    "Veuillez créer un nouveau signalement avec les preuves nécessaires.",
-                    "warning"
-                );
-                return;
-            }
-
-            const response = await API.put(
-                `/reports/${selectedReportForAction.id}`,
-                updateData
-            );
-
-            // Gérer les fichiers séparément (si autorisé)
-            if (
-                (editData.newFiles && editData.newFiles.length > 0) ||
-                (editData.filesToRemove && editData.filesToRemove.length > 0)
-            ) {
-                try {
-                    const formData = new FormData();
-
-                    if (editData.filesToRemove && editData.filesToRemove.length > 0) {
-                        editData.filesToRemove.forEach((filename, index) => {
-                            formData.append(`files_to_remove[${index}]`, filename);
-                        });
-                    }
-
-                    if (editData.newFiles && editData.newFiles.length > 0) {
-                        editData.newFiles.forEach((file, index) => {
-                            formData.append(`new_files[${index}]`, file);
-                        });
-                    }
-
-                    const filesResponse = await API.post(
-                        `/reports/${selectedReportForAction.id}/files`,
-                        formData,
-                        {
-                            headers: {
-                                "Content-Type": "multipart/form-data",
-                            },
-                        }
-                    );
-
-                    if (filesResponse.data.success) {
-                        showToastMessage("Fichiers mis à jour avec succès", "success");
-                    }
-                } catch (filesError) {
-                    // Gérer spécifiquement l'erreur d'ajout de preuves
-                    if (
-                        filesError.response?.status === 403 &&
-                        filesError.response?.data?.message ===
-                        "Ce signalement ne peut plus être modifié"
-                    ) {
-                        showToastMessage(
-                            "❌ Impossible d'ajouter des preuves : Ce signalement ne peut plus être modifié. " +
-                            "Pour ajouter des preuves, créez un nouveau signalement.",
-                            "error"
-                        );
-                    } else if (filesError.response?.status === 403) {
-                        showToastMessage(
-                            "❌ Permission refusée pour modifier les pièces jointes. " +
-                            "Ce signalement a peut-être déjà été traité ou classé.",
-                            "error"
-                        );
-                    }
-                }
-            }
-
-            await fetchReports();
-            setShowEditModal(false);
-            setSelectedReportForAction(null);
-
-            if (selectedReport?.id === selectedReportForAction.id) {
-                setSelectedReport((prev) => ({ ...prev, ...updateData }));
-            }
-
-            showToastMessage("Signalement modifié avec succès", "success");
-        } catch (error) {
-            // Gestion spécifique de l'erreur 403 avec message personnalisé
-            if (error.response?.status === 403 && error.response?.data?.message) {
-                const message = error.response.data.message;
-
-                if (message.includes("ne peut plus être modifié")) {
-                    showToastMessage(
-                        `❌ Modification impossible : ${message}\n\n` +
-                        `• Pour ajouter des preuves, créez un nouveau signalement\n` +
-                        `• Pour modifier les informations, contactez l'administrateur\n` +
-                        `• Ce signalement a probablement été traité ou archivé`,
-                        "error"
-                    );
-                } else {
-                    showToastMessage(`Permission refusée : ${message}`, "error");
-                }
-            } else if (
-                error.response?.status === 422 &&
-                error.response?.data?.errors
-            ) {
-                const errorMessages = Object.entries(error.response.data.errors)
-                    .map(
-                        ([field, messages]) =>
-                            `• ${field}: ${
-                                Array.isArray(messages) ? messages.join(", ") : messages
-                            }`
-                    )
-                    .join("\n");
-
-                showToastMessage(`Erreurs de validation:\n${errorMessages}`, "error");
-            } else {
-                showToastMessage(
-                    "Erreur lors de la modification: " +
-                    (error.response?.data?.message || error.message),
-                    "error"
-                );
-            }
-        }
-    };
-
-    const handleStatusSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!selectedReportForAction || !statusData.status) {
-            showToastMessage("Veuillez sélectionner un statut", "error");
-            return;
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+          pageCount++;
         }
 
-        try {
-            const response = await API.put(
-                `/reports/${selectedReportForAction.id}/status`,
-                {
-                    status: statusData.status,
-                }
-            );
+        pdf.save(`rapport_signalements_${generatedReport.dateGeneration}.pdf`);
+        showToastMessage("PDF exporté avec succès", "success");
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la génération du PDF:", error);
+        showToastMessage("Erreur lors de la génération du PDF", "error");
+      });
+  };
 
-            if (response.data.success) {
-                showToastMessage(
-                    `Statut mis à jour avec succès !\nNouveau statut: ${getDisplayStatus(
-                        statusData.status
-                    )}`,
-                    "success"
-                );
+  const cat = categories.find((c) => c.id === activeCategory);
+  const categoryStats = calculateCategoryStats(activeCategory);
 
-                setShowStatusModal(false);
-                setStatusData({
-                    status: "",
-                });
-                setSelectedReportForAction(null);
-
-                await fetchReports();
-            }
-        } catch (error) {
-            showToastMessage(
-                `Erreur: ${error.response?.data?.message || error.message}`,
-                "error"
-            );
-        }
-    };
-
-    const generateReport = (e) => {
-        e.preventDefault();
-
-        const selectedCategories =
-            reportData.categories.length > 0
-                ? categories
-                    .filter((cat) => reportData.categories.includes(cat.id))
-                    .map((cat) => cat.name)
-                : ["Toutes les catégories"];
-
-        const reportStats = {
-            total: filteredReports.length,
-            en_cours: filteredReports.filter((r) => r.status === "en_cours").length,
-            transmis_autorite: filteredReports.filter(
-                (r) => r.status === "transmis_autorite"
-            ).length,
-            classifier: filteredReports.filter((r) => r.status === "classifier")
-                .length,
-            investigation: filteredReports.filter((r) => r.status === "investigation")
-                .length,
-        };
-
-        const generatedReportData = {
-            type: reportData.type,
-            periode: `${formatDate(reportData.dateDebut)} - ${formatDate(
-                reportData.dateFin
-            )}`,
-            categories: selectedCategories,
-            notes: reportData.notes,
-            stats: reportStats,
-            dateGeneration: new Date().toLocaleDateString("fr-FR"),
-            heureGeneration: new Date().toLocaleTimeString("fr-FR"),
-        };
-
-        setGeneratedReport(generatedReportData);
-        setShowReportPreview(true);
-        showToastMessage("Rapport généré avec succès", "success");
-    };
-
-    const exportToPDF = () => {
-        const element = document.getElementById("report-preview");
-
-        html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#ffffff",
-        })
-            .then((canvas) => {
-                const imgWidth = 210;
-                const pageHeight = 297;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-
-                const pdf = new jsPDF("p", "mm", "a4");
-                let pageCount = 1;
-
-                let imgData = canvas.toDataURL("image/jpeg", 0.98);
-
-                pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                    pageCount++;
-                }
-
-                pdf.save(`rapport_signalements_${generatedReport.dateGeneration}.pdf`);
-                showToastMessage("PDF exporté avec succès", "success");
-            })
-            .catch((error) => {
-                console.error("Erreur lors de la génération du PDF:", error);
-                showToastMessage("Erreur lors de la génération du PDF", "error");
-            });
-    };
-
-    const cat = categories.find((c) => c.id === activeCategory);
-    const categoryStats = calculateCategoryStats(activeCategory);
-
-    if (selectedReport && !generatedReport) {
-        return (
-            <>
-                <style>
-                    {`
+  if (selectedReport && !generatedReport) {
+    return (
+      <>
+        <style>
+          {`
             @media print {
               body * {
                 visibility: hidden;
@@ -1321,2117 +1299,2117 @@ const ReportsView = ({ onContactReference }) => {
               }
             }
           `}
-                </style>
+        </style>
 
-                {/* Toast Notification */}
-                <ToastNotification
-                    message={toast.message}
-                    type={toast.type}
-                    show={toast.show}
-                    onClose={() => setToast((prev) => ({ ...prev, show: false }))}
-                />
+        {/* Toast Notification */}
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          show={toast.show}
+          onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+        />
 
-                {/* Confirmation Modal */}
-                <ConfirmationModal
-                    show={confirmationModal.show}
-                    title={confirmationModal.title}
-                    message={confirmationModal.message}
-                    onConfirm={handleConfirmation}
-                    onCancel={closeConfirmationModal}
-                    confirmText="Supprimer"
-                    cancelText="Annuler"
-                />
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          show={confirmationModal.show}
+          title={confirmationModal.title}
+          message={confirmationModal.message}
+          onConfirm={handleConfirmation}
+          onCancel={closeConfirmationModal}
+          confirmText="Supprimer"
+          cancelText="Annuler"
+        />
 
-                <div className="print-section p-4 bg-white min-h-screen">
-                    <div className="flex items-center justify-between mb-4 no-print">
-                        <div>
-                            <h1 className="text-lg font-bold text-gray-900">
-                                Détail du Signalement - {selectedReport.reference}
-                            </h1>
-                            <p className="text-xs text-gray-600 mt-1">
-                                {formatDate(selectedReport.date)} •{" "}
-                                {selectedReport.categorieLabel}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setSelectedReport(null)}
-                            className="flex items-center gap-2 px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            <ChevronLeft className="w-3 h-3" />
-                            Retour à la liste
-                        </button>
-                    </div>
+        <div className="print-section p-4 bg-white min-h-screen">
+          <div className="flex items-center justify-between mb-4 no-print">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Détail du Signalement - {selectedReport.reference}
+              </h1>
+              <p className="text-xs text-gray-600 mt-1">
+                {formatDate(selectedReport.date)} •{" "}
+                {selectedReport.categorieLabel}
+              </p>
+            </div>
+            <button
+              onClick={() => setSelectedReport(null)}
+              className="flex items-center gap-2 px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Retour à la liste
+            </button>
+          </div>
 
-                    <div className="space-y-3">
-                        <div className="bg-white rounded-lg border border-gray-200">
-                            <button
-                                onClick={() => toggleSection("general")}
-                                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        Informations Générales
-                                    </h4>
-                                </div>
-                                {expandedSections.general ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                                )}
-                            </button>
-                            {expandedSections.general && (
-                                <div className="px-3 pb-3">
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                                        <div>
+          <div className="space-y-3">
+            <div className="bg-white rounded-lg border border-gray-200">
+              <button
+                onClick={() => toggleSection("general")}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    Informations Générales
+                  </h4>
+                </div>
+                {expandedSections.general ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+              {expandedSections.general && (
+                <div className="px-3 pb-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                    <div>
                       <span className="text-gray-600 block mb-1">
                         Référence:
                       </span>
-                                            <p className="font-medium text-sm">
-                                                {selectedReport.reference}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600 block mb-1">Date:</span>
-                                            <p className="font-medium text-sm">
-                                                {formatDate(selectedReport.date)}
-                                            </p>
-                                        </div>
-                                        <div>
+                      <p className="font-medium text-sm">
+                        {selectedReport.reference}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 block mb-1">Date:</span>
+                      <p className="font-medium text-sm">
+                        {formatDate(selectedReport.date)}
+                      </p>
+                    </div>
+                    <div>
                       <span className="text-gray-600 block mb-1">
                         Catégorie:
                       </span>
-                                            <p className="font-medium text-sm">
-                                                {selectedReport.categorieLabel}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600 block mb-1">Statut:</span>
-                                            <span
-                                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                    selectedReport.status === "en_cours"
-                                                        ? "bg-yellow-100 text-yellow-800"
-                                                        : selectedReport.status === "transmis_autorite"
-                                                            ? "bg-indigo-100 text-indigo-800"
-                                                            : selectedReport.status === "classifier"
-                                                                ? "bg-blue-100 text-blue-800"
-                                                                : selectedReport.status === "investigation"
-                                                                    ? "bg-purple-100 text-purple-800"
-                                                                    : "bg-gray-100 text-gray-800"
-                                                }`}
-                                            >
+                      <p className="font-medium text-sm">
+                        {selectedReport.categorieLabel}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 block mb-1">Statut:</span>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          selectedReport.status === "en_cours"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : selectedReport.status === "transmis_autorite"
+                            ? "bg-indigo-100 text-indigo-800"
+                            : selectedReport.status === "classifier"
+                            ? "bg-blue-100 text-blue-800"
+                            : selectedReport.status === "investigation"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {getDisplayStatus(selectedReport.status)}
                       </span>
-                                        </div>
-                                        <div>
+                    </div>
+                    <div>
                       <span className="text-gray-600 block mb-1">
                         Assigné à:
                       </span>
-                                            <span
-                                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                    selectedReport.assigned_to === "investigateur"
-                                                        ? "bg-indigo-100 text-indigo-800"
-                                                        : selectedReport.assigned_to === "cac_daj"
-                                                            ? "bg-blue-100 text-blue-800"
-                                                            : selectedReport.assigned_to ===
-                                                            "autorite_competente"
-                                                                ? "bg-cyan-100 text-cyan-800"
-                                                                : "bg-gray-100 text-gray-800"
-                                                }`}
-                                            >
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          selectedReport.assigned_to === "investigateur"
+                            ? "bg-indigo-100 text-indigo-800"
+                            : selectedReport.assigned_to === "cac_daj"
+                            ? "bg-blue-100 text-blue-800"
+                            : selectedReport.assigned_to ===
+                              "autorite_competente"
+                            ? "bg-cyan-100 text-cyan-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {getDisplayAssignedTo(selectedReport.assigned_to)}
                       </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600 block mb-1">Type:</span>
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    </div>
+                    <div>
+                      <span className="text-gray-600 block mb-1">Type:</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         {selectedReport.type_signalement}
                       </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-                        <div className="bg-white rounded-lg border border-gray-200">
-                            <button
-                                onClick={() => toggleSection("auteur")}
-                                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        Informations de l'Auteur
-                                    </h4>
-                                </div>
-                                {expandedSections.auteur ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                                )}
-                            </button>
-                            {expandedSections.auteur && (
-                                <div className="px-3 pb-3">
-                                    {selectedReport.type_signalement === "Anonyme" ? (
-                                        <div className="text-center py-3">
-                                            <Users className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                                            <p className="text-xs text-gray-600">
-                                                Signalement anonyme
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                                            <div>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <button
+                onClick={() => toggleSection("auteur")}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    Informations de l'Auteur
+                  </h4>
+                </div>
+                {expandedSections.auteur ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+              {expandedSections.auteur && (
+                <div className="px-3 pb-3">
+                  {selectedReport.type_signalement === "Anonyme" ? (
+                    <div className="text-center py-3">
+                      <Users className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                      <p className="text-xs text-gray-600">
+                        Signalement anonyme
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div>
                         <span className="text-gray-600 block mb-1">
                           Nom / Prénom:
                         </span>
-                                                <p className="font-medium text-sm">
-                                                    {selectedReport.nom_prenom}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <span className="text-gray-600 block mb-1">Email:</span>
-                                                <p className="font-medium text-sm">
-                                                    {selectedReport.email}
-                                                </p>
-                                            </div>
-                                            <div>
+                        <p className="font-medium text-sm">
+                          {selectedReport.nom_prenom}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 block mb-1">Email:</span>
+                        <p className="font-medium text-sm">
+                          {selectedReport.email}
+                        </p>
+                      </div>
+                      <div>
                         <span className="text-gray-600 block mb-1">
                           Téléphone:
                         </span>
-                                                <p className="font-medium text-sm">
-                                                    {selectedReport.telephone}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        <p className="font-medium text-sm">
+                          {selectedReport.telephone}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-                        <div className="bg-white rounded-lg border border-gray-200">
-                            <button
-                                onClick={() => toggleSection("description")}
-                                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        Description du Signalement
-                                    </h4>
-                                </div>
-                                {expandedSections.description ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                                )}
-                            </button>
-                            {expandedSections.description && (
-                                <div className="px-3 pb-3">
-                                    <div className="bg-gray-50 rounded-md p-3 text-xs leading-relaxed">
-                                        {selectedReport.explication}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+            <div className="bg-white rounded-lg border border-gray-200">
+              <button
+                onClick={() => toggleSection("description")}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    Description du Signalement
+                  </h4>
+                </div>
+                {expandedSections.description ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+              {expandedSections.description && (
+                <div className="px-3 pb-3">
+                  <div className="bg-gray-50 rounded-md p-3 text-xs leading-relaxed">
+                    {selectedReport.explication}
+                  </div>
+                </div>
+              )}
+            </div>
 
-                        <div className="bg-white rounded-lg border border-gray-200">
-                            <button
-                                onClick={() => toggleSection("pieces")}
-                                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                    <h4 className="text-sm font-semibold text-gray-900">
-                                        Pièces Jointes
-                                    </h4>
-                                </div>
-                                {expandedSections.pieces ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                                )}
-                            </button>
-                            {expandedSections.pieces && (
-                                <div className="px-3 pb-3">
-                                    {selectedReport.files && selectedReport.files.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                            {selectedReport.files.map((file, idx) => {
-                                                const fileName =
-                                                    typeof file === "string" ? file : file.name || "";
-                                                const ext = fileName.split(".").pop()?.toLowerCase();
-                                                const isImage = [
-                                                    "jpg",
-                                                    "jpeg",
-                                                    "png",
-                                                    "gif",
-                                                    "webp",
-                                                ].includes(ext);
-                                                const isPdf = ext === "pdf";
+            <div className="bg-white rounded-lg border border-gray-200">
+              <button
+                onClick={() => toggleSection("pieces")}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    Pièces Jointes
+                  </h4>
+                </div>
+                {expandedSections.pieces ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+              {expandedSections.pieces && (
+                <div className="px-3 pb-3">
+                  {selectedReport.files && selectedReport.files.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {selectedReport.files.map((file, idx) => {
+                        const fileName =
+                          typeof file === "string" ? file : file.name || "";
+                        const ext = fileName.split(".").pop()?.toLowerCase();
+                        const isImage = [
+                          "jpg",
+                          "jpeg",
+                          "png",
+                          "gif",
+                          "webp",
+                        ].includes(ext);
+                        const isPdf = ext === "pdf";
 
-                                                return (
-                                                    <div
-                                                        key={idx}
-                                                        className="bg-gray-50 rounded-lg border overflow-hidden"
-                                                    >
-                                                        <div className="aspect-video bg-white flex items-center justify-center">
-                                                            {isImage ? (
-                                                                <img
-                                                                    src={`${
-                                                                        API.defaults.baseURL
-                                                                    }/files/public/${encodeURIComponent(
-                                                                        fileName
-                                                                            .replace(/^admin\//, "")
-                                                                            .replace(/^\//, "")
-                                                                            .split("/")
-                                                                            .pop()
-                                                                    )}`}
-                                                                    alt={fileName}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        e.currentTarget.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%239ca3af' font-size='12'%3EImpossible de charger l'image%3C/text%3E%3C/svg%3E`;
-                                                                    }}
-                                                                />
-                                                            ) : isPdf ? (
-                                                                <div className="text-center p-2">
-                                                                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-1">
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-gray-50 rounded-lg border overflow-hidden"
+                          >
+                            <div className="aspect-video bg-white flex items-center justify-center">
+                              {isImage ? (
+                                <img
+                                  src={`${
+                                    API.defaults.baseURL
+                                  }/files/public/${encodeURIComponent(
+                                    fileName
+                                      .replace(/^admin\//, "")
+                                      .replace(/^\//, "")
+                                      .split("/")
+                                      .pop()
+                                  )}`}
+                                  alt={fileName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%239ca3af' font-size='12'%3EImpossible de charger l'image%3C/text%3E%3C/svg%3E`;
+                                  }}
+                                />
+                              ) : isPdf ? (
+                                <div className="text-center p-2">
+                                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-1">
                                     <span className="text-red-600 font-bold text-xs">
                                       PDF
                                     </span>
-                                                                    </div>
-                                                                    <p className="text-xs text-gray-600">
-                                                                        Document PDF
-                                                                    </p>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="text-center p-2">
-                                                                    <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-1">
+                                  </div>
+                                  <p className="text-xs text-gray-600">
+                                    Document PDF
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="text-center p-2">
+                                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-1">
                                     <span className="text-gray-600 font-bold text-xs">
                                       {ext?.toUpperCase()}
                                     </span>
-                                                                    </div>
-                                                                    <p className="text-xs text-gray-600">
-                                                                        Fichier {ext}
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="p-2">
-                                                            <p
-                                                                className="text-xs font-medium truncate mb-1"
-                                                                title={fileName}
-                                                            >
-                                                                {fileName}
-                                                            </p>
-                                                            <div className="flex gap-1">
-                                                                <button
-                                                                    onClick={() => handleViewFile(fileName)}
-                                                                    className="flex-1 bg-blue-50 text-blue-600 py-1 px-1 rounded text-xs hover:bg-blue-100 transition-colors"
-                                                                >
-                                                                    Voir
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDownloadFile(fileName)}
-                                                                    className="flex-1 bg-gray-100 text-gray-700 py-1 px-1 rounded text-xs hover:bg-gray-200 transition-colors"
-                                                                >
-                                                                    Télécharger
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-4">
-                                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                <Download className="w-6 h-6 text-gray-400" />
-                                            </div>
-                                            <p className="text-xs text-gray-600">
-                                                Aucun fichier joint
-                                            </p>
-                                        </div>
-                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600">
+                                    Fichier {ext}
+                                  </p>
                                 </div>
-                            )}
-                        </div>
+                              )}
+                            </div>
+                            <div className="p-2">
+                              <p
+                                className="text-xs font-medium truncate mb-1"
+                                title={fileName}
+                              >
+                                {fileName}
+                              </p>
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => handleViewFile(fileName)}
+                                  className="flex-1 bg-blue-50 text-blue-600 py-1 px-1 rounded text-xs hover:bg-blue-100 transition-colors"
+                                >
+                                  Voir
+                                </button>
+                                <button
+                                  onClick={() => handleDownloadFile(fileName)}
+                                  className="flex-1 bg-gray-100 text-gray-700 py-1 px-1 rounded text-xs hover:bg-gray-200 transition-colors"
+                                >
+                                  Télécharger
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Download className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Aucun fichier joint
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
-                    <div className="flex justify-between items-center mt-6 pt-4 border-t no-print">
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleEditReport(selectedReport)}
-                                className="flex items-center gap-1 px-3 py-1 text-xs border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors"
-                            >
-                                <Edit className="w-3 h-3" />
-                                Modifier
-                            </button>
-                            <button
-                                onClick={() => handleDeleteReport(selectedReport)}
-                                className="flex items-center gap-1 px-3 py-1 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
-                            >
-                                <Trash2 className="w-3 h-3" />
-                                Supprimer
-                            </button>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handlePrintReport(selectedReport)}
-                                className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                            >
-                                <Printer className="w-3 h-3" />
-                                Imprimer
-                            </button>
-                            <button
-                                onClick={() => handleStatusUpdate(selectedReport)}
-                                className="flex items-center gap-1 px-3 py-1 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-                            >
-                                <Filter className="w-3 h-3" />
-                                Statut
-                            </button>
-                        </div>
-                    </div>
+          <div className="flex justify-between items-center mt-6 pt-4 border-t no-print">
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleEditReport(selectedReport)}
+                className="flex items-center gap-1 px-3 py-1 text-xs border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors"
+              >
+                <Edit className="w-3 h-3" />
+                Modifier
+              </button>
+              <button
+                onClick={() => handleDeleteReport(selectedReport)}
+                className="flex items-center gap-1 px-3 py-1 text-xs border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-3 h-3" />
+                Supprimer
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePrintReport(selectedReport)}
+                className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <Printer className="w-3 h-3" />
+                Imprimer
+              </button>
+              <button
+                onClick={() => handleStatusUpdate(selectedReport)}
+                className="flex items-center gap-1 px-3 py-1 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                <Filter className="w-3 h-3" />
+                Statut
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {showStatusModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg w-full max-w-md mx-4">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-semibold">
+                  Mettre à jour le statut
+                </h2>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleStatusSubmit} className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nouveau statut <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={statusData.status}
+                    onChange={(e) =>
+                      setStatusData((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    required
+                  >
+                    <option value="">Sélectionner un statut</option>
+                    <option value="investigation">Ouverture d'enquêtes</option>
+                    <option value="transmis_autorite">
+                      Transmis aux autorités compétentes
+                    </option>
+                    <option value="classifier">
+                      Dossier classé sans suite
+                    </option>
+                  </select>
                 </div>
 
-                {showStatusModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-lg w-full max-w-md mx-4">
-                            <div className="flex items-center justify-between p-4 border-b">
-                                <h2 className="text-lg font-semibold">
-                                    Mettre à jour le statut
-                                </h2>
-                                <button
-                                    onClick={() => setShowStatusModal(false)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowStatusModal(false)}
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700"
+                  >
+                    Mettre à jour le statut
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
-                            <form onSubmit={handleStatusSubmit} className="p-4 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nouveau statut <span className="text-red-600">*</span>
-                                    </label>
-                                    <select
-                                        value={statusData.status}
-                                        onChange={(e) =>
-                                            setStatusData((prev) => ({
-                                                ...prev,
-                                                status: e.target.value,
-                                            }))
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        required
-                                    >
-                                        <option value="">Sélectionner un statut</option>
-                                        <option value="investigation">Ouverture d'enquêtes</option>
-                                        <option value="transmis_autorite">
-                                            Transmis aux autorités compétentes
-                                        </option>
-                                        <option value="classifier">
-                                            Dossier classé sans suite
-                                        </option>
-                                    </select>
-                                </div>
+        {showEditModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-semibold">
+                  Modifier le signalement
+                </h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                                <div className="flex justify-end gap-3 pt-4 border-t">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowStatusModal(false)}
-                                        className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700"
-                                    >
-                                        Mettre à jour le statut
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {showEditModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                            <div className="flex items-center justify-between p-4 border-b">
-                                <h2 className="text-lg font-semibold">
-                                    Modifier le signalement
-                                </h2>
-                                <button
-                                    onClick={() => setShowEditModal(false)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
-                                <div className="bg-gray-50 p-3 rounded-lg">
-                                    <p className="text-sm text-gray-600">
-                                        <span className="font-semibold">Type:</span>{" "}
-                                        <span
-                                            className={
-                                                selectedReportForAction?.type_signalement === "Anonyme"
-                                                    ? "text-blue-600"
-                                                    : "text-green-600"
-                                            }
-                                        >
+              <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-semibold">Type:</span>{" "}
+                    <span
+                      className={
+                        selectedReportForAction?.type_signalement === "Anonyme"
+                          ? "text-blue-600"
+                          : "text-green-600"
+                      }
+                    >
                       {selectedReportForAction?.type_signalement}
                     </span>
-                                    </p>
-                                    {selectedReportForAction?.type_signalement === "Anonyme" && (
-                                        <p className="text-xs text-amber-600 mt-1">
-                                            ⚠️ Seuls la description et les pièces jointes peuvent être
-                                            modifiés pour un signalement anonyme
-                                        </p>
-                                    )}
-                                </div>
+                  </p>
+                  {selectedReportForAction?.type_signalement === "Anonyme" && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      ⚠️ Seuls la description et les pièces jointes peuvent être
+                      modifiés pour un signalement anonyme
+                    </p>
+                  )}
+                </div>
 
-                                {selectedReportForAction?.type_signalement !== "Anonyme" && (
-                                    <>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Nom et Prénom
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editData.nom_prenom}
-                                                    onChange={(e) =>
-                                                        setEditData({
-                                                            ...editData,
-                                                            nom_prenom: e.target.value,
-                                                        })
-                                                    }
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="Nom complet"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Email
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    value={editData.email}
-                                                    onChange={(e) =>
-                                                        setEditData({ ...editData, email: e.target.value })
-                                                    }
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="email@exemple.com"
-                                                />
-                                            </div>
-                                        </div>
+                {selectedReportForAction?.type_signalement !== "Anonyme" && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nom et Prénom
+                        </label>
+                        <input
+                          type="text"
+                          value={editData.nom_prenom}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              nom_prenom: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          placeholder="Nom complet"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={editData.email}
+                          onChange={(e) =>
+                            setEditData({ ...editData, email: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          placeholder="email@exemple.com"
+                        />
+                      </div>
+                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Téléphone
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editData.telephone}
-                                                    onChange={(e) =>
-                                                        setEditData({
-                                                            ...editData,
-                                                            telephone: e.target.value,
-                                                        })
-                                                    }
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="+261 XX XX XXX XX"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Ville
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editData.city}
-                                                    onChange={(e) =>
-                                                        setEditData({ ...editData, city: e.target.value })
-                                                    }
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="Ville"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Province
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editData.province}
-                                                    onChange={(e) =>
-                                                        setEditData({
-                                                            ...editData,
-                                                            province: e.target.value,
-                                                        })
-                                                    }
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    placeholder="Province"
-                                                />
-                                            </div>
-                                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Téléphone
+                        </label>
+                        <input
+                          type="text"
+                          value={editData.telephone}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              telephone: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          placeholder="+261 XX XX XXX XX"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Ville
+                        </label>
+                        <input
+                          type="text"
+                          value={editData.city}
+                          onChange={(e) =>
+                            setEditData({ ...editData, city: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          placeholder="Ville"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Province
+                        </label>
+                        <input
+                          type="text"
+                          value={editData.province}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              province: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          placeholder="Province"
+                        />
+                      </div>
+                    </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Catégorie
-                                            </label>
-                                            <select
-                                                value={editData.category}
-                                                onChange={(e) =>
-                                                    setEditData({ ...editData, category: e.target.value })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            >
-                                                <option value="">Sélectionner une catégorie</option>
-                                                {categories.map((cat) => (
-                                                    <option key={cat.id} value={cat.id}>
-                                                        {cat.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </>
-                                )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Catégorie
+                      </label>
+                      <select
+                        value={editData.category}
+                        onChange={(e) =>
+                          setEditData({ ...editData, category: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="">Sélectionner une catégorie</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Description <span className="text-red-600">*</span>
-                                    </label>
-                                    <textarea
-                                        value={editData.description}
-                                        onChange={(e) =>
-                                            setEditData({ ...editData, description: e.target.value })
-                                        }
-                                        rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description <span className="text-red-600">*</span>
+                  </label>
+                  <textarea
+                    value={editData.description}
+                    onChange={(e) =>
+                      setEditData({ ...editData, description: e.target.value })
+                    }
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
 
-                                {selectedReportForAction?.files &&
-                                    selectedReportForAction.files.length > 0 && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Pièces jointes actuelles
-                                            </label>
-                                            <div className="space-y-2">
-                                                {selectedReportForAction.files.map((file, index) => {
-                                                    const fileName =
-                                                        typeof file === "string" ? file : file.name;
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center justify-between bg-gray-50 p-2 rounded border"
-                                                        >
+                {selectedReportForAction?.files &&
+                  selectedReportForAction.files.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Pièces jointes actuelles
+                      </label>
+                      <div className="space-y-2">
+                        {selectedReportForAction.files.map((file, index) => {
+                          const fileName =
+                            typeof file === "string" ? file : file.name;
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-gray-50 p-2 rounded border"
+                            >
                               <span className="text-sm truncate flex-1">
                                 {fileName}
                               </span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const newFiles =
-                                                                        selectedReportForAction.files.filter(
-                                                                            (_, i) => i !== index
-                                                                        );
-                                                                    setSelectedReportForAction({
-                                                                        ...selectedReportForAction,
-                                                                        files: newFiles,
-                                                                    });
-                                                                    setEditData({
-                                                                        ...editData,
-                                                                        filesToRemove: [
-                                                                            ...(editData.filesToRemove || []),
-                                                                            fileName,
-                                                                        ],
-                                                                    });
-                                                                }}
-                                                                className="ml-2 text-red-600 hover:text-red-800"
-                                                                title="Supprimer ce fichier"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newFiles =
+                                    selectedReportForAction.files.filter(
+                                      (_, i) => i !== index
+                                    );
+                                  setSelectedReportForAction({
+                                    ...selectedReportForAction,
+                                    files: newFiles,
+                                  });
+                                  setEditData({
+                                    ...editData,
+                                    filesToRemove: [
+                                      ...(editData.filesToRemove || []),
+                                      fileName,
+                                    ],
+                                  });
+                                }}
+                                className="ml-2 text-red-600 hover:text-red-800"
+                                title="Supprimer ce fichier"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Ajouter de nouvelles pièces jointes
-                                    </label>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept=".jpg,.jpeg,.png,.pdf,.mp4"
-                                        onChange={(e) => {
-                                            const files = Array.from(e.target.files);
-                                            setEditData({ ...editData, newFiles: files });
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Formats: JPG, PNG, PDF, MP4 - Max 25 Mo/fichier
-                                    </p>
-                                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ajouter de nouvelles pièces jointes
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.pdf,.mp4"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      setEditData({ ...editData, newFiles: files });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Formats: JPG, PNG, PDF, MP4 - Max 25 Mo/fichier
+                  </p>
+                </div>
 
-                                {editData.newFiles && editData.newFiles.length > 0 && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-700 mb-2">
-                                            Nouveaux fichiers à ajouter ({editData.newFiles.length})
-                                        </p>
-                                        <div className="space-y-2">
-                                            {editData.newFiles.map((file, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-200"
-                                                >
+                {editData.newFiles && editData.newFiles.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Nouveaux fichiers à ajouter ({editData.newFiles.length})
+                    </p>
+                    <div className="space-y-2">
+                      {editData.newFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-200"
+                        >
                           <span className="text-sm truncate flex-1">
                             {file.name}
                           </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const newFiles = editData.newFiles.filter(
-                                                                (_, i) => i !== index
-                                                            );
-                                                            setEditData({ ...editData, newFiles });
-                                                        }}
-                                                        className="ml-2 text-red-600 hover:text-red-800"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex justify-end gap-3 pt-4 border-t">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowEditModal(false)}
-                                        className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                                    >
-                                        Modifier
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-            </>
-        );
-    }
-
-    if (showReportModal) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-4">
-                {/* Toast Notification */}
-                <ToastNotification
-                    message={toast.message}
-                    type={toast.type}
-                    show={toast.show}
-                    onClose={() => setToast((prev) => ({ ...prev, show: false }))}
-                />
-
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Génération de Rapport
-                        </h1>
-                        <p className="text-sm text-gray-600 mt-2">
-                            Configurez et prévisualisez votre rapport
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
+                          <button
+                            type="button"
                             onClick={() => {
-                                setShowReportModal(false);
-                                setShowReportPreview(false);
-                                setGeneratedReport(null);
+                              const newFiles = editData.newFiles.filter(
+                                (_, i) => i !== index
+                              );
+                              setEditData({ ...editData, newFiles });
                             }}
-                            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            Retour à la liste
-                        </button>
-                        {generatedReport && (
-                            <button
-                                onClick={exportToPDF}
-                                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                            >
-                                <Download className="w-4 h-4" />
-                                Exporter PDF
-                            </button>
-                        )}
+                            className="ml-2 text-red-600 hover:text-red-800"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                  >
+                    Modifier
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (showReportModal) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        {/* Toast Notification */}
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          show={toast.show}
+          onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+        />
+
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Génération de Rapport
+            </h1>
+            <p className="text-sm text-gray-600 mt-2">
+              Configurez et prévisualisez votre rapport
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowReportModal(false);
+                setShowReportPreview(false);
+                setGeneratedReport(null);
+              }}
+              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Retour à la liste
+            </button>
+            {generatedReport && (
+              <button
+                onClick={exportToPDF}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                <Download className="w-4 h-4" />
+                Exporter PDF
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Configuration du Rapport
+            </h2>
+
+            <form onSubmit={generateReport} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Type de rapport *
+                </label>
+                <select
+                  value={reportData.type}
+                  onChange={(e) =>
+                    setReportData({ ...reportData, type: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="quotidien">Quotidien</option>
+                  <option value="hebdomadaire">Hebdomadaire</option>
+                  <option value="mensuel">Mensuel</option>
+                  <option value="annuel">Annuel</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date de début *
+                  </label>
+                  <input
+                    type="date"
+                    value={reportData.dateDebut}
+                    onChange={(e) =>
+                      setReportData({
+                        ...reportData,
+                        dateDebut: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date de fin *
+                  </label>
+                  <input
+                    type="date"
+                    value={reportData.dateFin}
+                    onChange={(e) =>
+                      setReportData({ ...reportData, dateFin: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Catégories à inclure
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-3">
+                  {categories.map((cat) => (
+                    <label key={cat.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={reportData.categories.includes(cat.id)}
+                        onChange={(e) => {
+                          const newCategories = e.target.checked
+                            ? [...reportData.categories, cat.id]
+                            : reportData.categories.filter(
+                                (id) => id !== cat.id
+                              );
+                          setReportData({
+                            ...reportData,
+                            categories: newCategories,
+                          });
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">{cat.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Laissez vide pour inclure toutes les catégories
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes et observations
+                </label>
+                <textarea
+                  value={reportData.notes}
+                  onChange={(e) =>
+                    setReportData({ ...reportData, notes: e.target.value })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Ajoutez des commentaires ou observations..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
+              >
+                Générer le Rapport
+              </button>
+            </form>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Prévisualisation du Rapport
+            </h2>
+
+            {showReportPreview && generatedReport ? (
+              <div id="report-preview" className="pdf-export bg-white p-8">
+                <div className="text-center border-b-2 border-gray-800 pb-6 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-left">
+                      <img
+                        src={repLogo}
+                        alt="République de Madagascar"
+                        className="h-16 object-contain"
+                      />
+                      <p className="text-xs font-bold text-gray-800 mt-1">
+                        REPOBLIKAN'I MADAGASIKARA
+                      </p>
+                    </div>
+
+                    <div className="text-center flex-1 mx-8">
+                      <div className="border-l border-r border-gray-400 px-8">
+                        <img
+                          src={mesupresLogo}
+                          alt="MESUPRES"
+                          className="h-16 object-contain mx-auto"
+                        />
+                        <p className="text-xs font-bold text-gray-800 mt-1 uppercase">
+                          MINISTERAN'NY FAMPIANARANA AMBONY SY FIKAROHANA
+                          ARA-TSIANSA
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <img
+                        src={fosikaLogo}
+                        alt="FOSIKA"
+                        className="h-16 object-contain ml-auto"
+                      />
+                      <p className="text-xs font-bold text-gray-800 mt-1">
+                        FOSIKA
+                      </p>
+                    </div>
+                  </div>
+
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2 uppercase">
+                    Rapport des Signalements
+                  </h1>
+                  <p className="text-lg font-semibold text-gray-700">
+                    {generatedReport.type.charAt(0).toUpperCase() +
+                      generatedReport.type.slice(1)}{" "}
+                    - {generatedReport.periode}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            Configuration du Rapport
-                        </h2>
-
-                        <form onSubmit={generateReport} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Type de rapport *
-                                </label>
-                                <select
-                                    value={reportData.type}
-                                    onChange={(e) =>
-                                        setReportData({ ...reportData, type: e.target.value })
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    required
-                                >
-                                    <option value="quotidien">Quotidien</option>
-                                    <option value="hebdomadaire">Hebdomadaire</option>
-                                    <option value="mensuel">Mensuel</option>
-                                    <option value="annuel">Annuel</option>
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Date de début *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={reportData.dateDebut}
-                                        onChange={(e) =>
-                                            setReportData({
-                                                ...reportData,
-                                                dateDebut: e.target.value,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Date de fin *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={reportData.dateFin}
-                                        onChange={(e) =>
-                                            setReportData({ ...reportData, dateFin: e.target.value })
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Catégories à inclure
-                                </label>
-                                <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-3">
-                                    {categories.map((cat) => (
-                                        <label key={cat.id} className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={reportData.categories.includes(cat.id)}
-                                                onChange={(e) => {
-                                                    const newCategories = e.target.checked
-                                                        ? [...reportData.categories, cat.id]
-                                                        : reportData.categories.filter(
-                                                            (id) => id !== cat.id
-                                                        );
-                                                    setReportData({
-                                                        ...reportData,
-                                                        categories: newCategories,
-                                                    });
-                                                }}
-                                                className="w-4 h-4"
-                                            />
-                                            <span className="text-sm">{cat.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Laissez vide pour inclure toutes les catégories
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Notes et observations
-                                </label>
-                                <textarea
-                                    value={reportData.notes}
-                                    onChange={(e) =>
-                                        setReportData({ ...reportData, notes: e.target.value })
-                                    }
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    placeholder="Ajoutez des commentaires ou observations..."
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
-                            >
-                                Générer le Rapport
-                            </button>
-                        </form>
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
+                    Informations Générales
+                  </h2>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Type de rapport:</span>
+                      <span className="capitalize">{generatedReport.type}</span>
                     </div>
-
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            Prévisualisation du Rapport
-                        </h2>
-
-                        {showReportPreview && generatedReport ? (
-                            <div id="report-preview" className="pdf-export bg-white p-8">
-                                <div className="text-center border-b-2 border-gray-800 pb-6 mb-6">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="text-left">
-                                            <img
-                                                src={repLogo}
-                                                alt="République de Madagascar"
-                                                className="h-16 object-contain"
-                                            />
-                                            <p className="text-xs font-bold text-gray-800 mt-1">
-                                                REPOBLIKAN'I MADAGASIKARA
-                                            </p>
-                                        </div>
-
-                                        <div className="text-center flex-1 mx-8">
-                                            <div className="border-l border-r border-gray-400 px-8">
-                                                <img
-                                                    src={mesupresLogo}
-                                                    alt="MESUPRES"
-                                                    className="h-16 object-contain mx-auto"
-                                                />
-                                                <p className="text-xs font-bold text-gray-800 mt-1 uppercase">
-                                                    MINISTERAN'NY FAMPIANARANA AMBONY SY FIKAROHANA
-                                                    ARA-TSIANSA
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="text-right">
-                                            <img
-                                                src={fosikaLogo}
-                                                alt="FOSIKA"
-                                                className="h-16 object-contain ml-auto"
-                                            />
-                                            <p className="text-xs font-bold text-gray-800 mt-1">
-                                                FOSIKA
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <h1 className="text-2xl font-bold text-gray-900 mb-2 uppercase">
-                                        Rapport des Signalements
-                                    </h1>
-                                    <p className="text-lg font-semibold text-gray-700">
-                                        {generatedReport.type.charAt(0).toUpperCase() +
-                                            generatedReport.type.slice(1)}{" "}
-                                        - {generatedReport.periode}
-                                    </p>
-                                </div>
-
-                                <div className="mb-6">
-                                    <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
-                                        Informations Générales
-                                    </h2>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold">Type de rapport:</span>
-                                            <span className="capitalize">{generatedReport.type}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold">Période couverte:</span>
-                                            <span>{generatedReport.periode}</span>
-                                        </div>
-                                        <div className="flex justify-between">
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Période couverte:</span>
+                      <span>{generatedReport.periode}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="font-semibold">
                         Catégories incluses:
                       </span>
-                                            <span className="text-right">
+                      <span className="text-right">
                         {generatedReport.categories.length > 0
-                            ? generatedReport.categories.join(", ")
-                            : "Toutes les catégories"}
+                          ? generatedReport.categories.join(", ")
+                          : "Toutes les catégories"}
                       </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold">Date de génération:</span>
-                                            <span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Date de génération:</span>
+                      <span>
                         {generatedReport.dateGeneration} à{" "}
-                                                {generatedReport.heureGeneration}
+                        {generatedReport.heureGeneration}
                       </span>
-                                        </div>
-                                    </div>
-                                </div>
+                    </div>
+                  </div>
+                </div>
 
-                                <div className="mb-6">
-                                    <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
-                                        Statistiques des Signalements
-                                    </h2>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between border-b pb-2">
-                                            <span>Total des signalements enregistrés:</span>
-                                            <span className="font-bold">
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
+                    Statistiques des Signalements
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex justify-between border-b pb-2">
+                      <span>Total des signalements enregistrés:</span>
+                      <span className="font-bold">
                         {generatedReport.stats.total}
                       </span>
-                                        </div>
-                                        <div className="flex justify-between border-b pb-2">
-                                            <span>Signalements en cours:</span>
-                                            <span className="font-bold text-amber-600">
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span>Signalements en cours:</span>
+                      <span className="font-bold text-amber-600">
                         {generatedReport.stats.en_cours}
                       </span>
-                                        </div>
-                                        <div className="flex justify-between border-b pb-2">
-                                            <span>Transmis aux autorités compétentes:</span>
-                                            <span className="font-bold text-indigo-600">
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span>Transmis aux autorités compétentes:</span>
+                      <span className="font-bold text-indigo-600">
                         {generatedReport.stats.transmis_autorite}
                       </span>
-                                        </div>
-                                        <div className="flex justify-between border-b pb-2">
-                                            <span>Dossiers classés sans suite:</span>
-                                            <span className="font-bold text-blue-600">
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span>Dossiers classés sans suite:</span>
+                      <span className="font-bold text-blue-600">
                         {generatedReport.stats.classifier}
                       </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Ouverture d'enquêtes:</span>
-                                            <span className="font-bold text-purple-600">
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ouverture d'enquêtes:</span>
+                      <span className="font-bold text-purple-600">
                         {generatedReport.stats.investigation}
                       </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6">
-                                    <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
-                                        Analyse
-                                    </h2>
-                                    <div className="space-y-4 text-sm leading-relaxed">
-                                        <p>
-                                            Le présent rapport d'activité du système FOSIKA couvre la
-                                            période du <strong> {generatedReport.periode} </strong>
-                                            et présente une analyse exhaustive des signalements reçus
-                                            concernant les irrégularités dans le secteur de
-                                            l'enseignement supérieur et de la recherche scientifique.
-                                        </p>
-
-                                        <p>
-                                            Durant cette période,{" "}
-                                            <strong>
-                                                {generatedReport.stats.total} signalements
-                                            </strong>{" "}
-                                            ont été enregistrés et traités par notre système. La
-                                            répartition par statut démontre l'efficacité de notre
-                                            mécanisme de traitement :
-                                        </p>
-
-                                        <ul className="list-disc list-inside space-y-2 ml-4">
-                                            <li>
-                                                <strong>
-                                                    {generatedReport.stats.en_cours} dossiers
-                                                </strong>{" "}
-                                                sont actuellement en cours d'instruction active
-                                            </li>
-                                            <li>
-                                                <strong>
-                                                    {generatedReport.stats.transmis_autorite} dossiers
-                                                </strong>{" "}
-                                                ont été transmis aux autorités compétentes
-                                            </li>
-                                            <li>
-                                                <strong>
-                                                    {generatedReport.stats.classifier} dossiers
-                                                </strong>{" "}
-                                                ont été classés sans suite
-                                            </li>
-                                            <li>
-                                                <strong>
-                                                    {generatedReport.stats.investigation} cas
-                                                </strong>{" "}
-                                                font l'objet d'une investigation approfondie
-                                            </li>
-                                        </ul>
-
-                                        <p>
-                                            Le système FOSIKA continue de démontrer son utilité dans
-                                            la lutte contre les fraudes académiques et les
-                                            irrégularités dans l'enseignement supérieur. Notre
-                                            plateforme assure un suivi rigoureux de chaque signalement
-                                            depuis sa réception jusqu'à sa résolution définitive.
-                                        </p>
-
-                                        {generatedReport.notes && (
-                                            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
-                                                <h3 className="font-bold text-blue-900 mb-2">
-                                                    Observations particulières :
-                                                </h3>
-                                                <p className="text-blue-800 whitespace-pre-wrap text-sm">
-                                                    {generatedReport.notes}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t-2 border-gray-800 text-center text-xs text-gray-600">
-                                    <p className="font-bold">
-                                        © DAAQ-MESUPRES 2025 - Tous droits réservés
-                                    </p>
-                                    <p className="mt-1">
-                                        Système FOSIKA - Plateforme de gestion des signalements
-                                    </p>
-                                    <p className="mt-2">
-                                        Document généré le {generatedReport.dateGeneration} à{" "}
-                                        {generatedReport.heureGeneration}
-                                    </p>
-                                    <p className="mt-1 font-semibold">
-                                        À usage officiel - Confidentiel
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-500">
-                                    Le rapport apparaîtra ici après génération
-                                </p>
-                                <p className="text-sm text-gray-400 mt-2">
-                                    Configurez les paramètres et cliquez sur "Générer le Rapport"
-                                </p>
-                            </div>
-                        )}
                     </div>
+                  </div>
                 </div>
-            </div>
-        );
-    }
 
-    return (
-        <div className="p-4">
-            {/* Toast Notification */}
-            <ToastNotification
-                message={toast.message}
-                type={toast.type}
-                show={toast.show}
-                onClose={() => setToast((prev) => ({ ...prev, show: false }))}
-            />
-
-            {/* Confirmation Modal */}
-            <ConfirmationModal
-                show={confirmationModal.show}
-                title={confirmationModal.title}
-                message={confirmationModal.message}
-                onConfirm={handleConfirmation}
-                onCancel={closeConfirmationModal}
-                confirmText="Supprimer"
-                cancelText="Annuler"
-            />
-
-            <div className="flex items-center justify-between mb-3">
-                <div>
-                    <h1 className="text-base font-semibold">
-                        Liste complète des signalements
-                    </h1>
-                    <p className="text-xs text-gray-500">
-                        Gestion et suivi des dossiers avec filtres avancés.
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">
+                    Analyse
+                  </h2>
+                  <div className="space-y-4 text-sm leading-relaxed">
+                    <p>
+                      Le présent rapport d'activité du système FOSIKA couvre la
+                      période du <strong> {generatedReport.periode} </strong>
+                      et présente une analyse exhaustive des signalements reçus
+                      concernant les irrégularités dans le secteur de
+                      l'enseignement supérieur et de la recherche scientifique.
                     </p>
-                </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-1 px-3 py-1 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                        <Plus className="w-3 h-3" />
-                        Nouveau signalement
-                    </button>
-
-                    <button
-                        onClick={() => setShowReportModal(true)}
-                        className="flex items-center gap-1 px-3 py-1 text-xs border rounded-md hover:bg-gray-50"
-                    >
-                        <FileText className="w-3 h-3" />
-                        Générer rapport
-                    </button>
-
-                    <button
-                        onClick={exportReports}
-                        className="flex items-center gap-1 px-3 py-1 text-xs border rounded-md hover:bg-gray-50"
-                    >
-                        <Download className="w-3 h-3" />
-                        Exporter CSV
-                    </button>
-                </div>
-            </div>
-
-            <div className="mb-6 bg-white rounded-lg border p-4">
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold text-gray-900 mb-1">
-                        Analyse Détaillée par Catégories
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                        Visualisation et analyse approfondie des signalements par catégorie
+                    <p>
+                      Durant cette période,{" "}
+                      <strong>
+                        {generatedReport.stats.total} signalements
+                      </strong>{" "}
+                      ont été enregistrés et traités par notre système. La
+                      répartition par statut démontre l'efficacité de notre
+                      mécanisme de traitement :
                     </p>
+
+                    <ul className="list-disc list-inside space-y-2 ml-4">
+                      <li>
+                        <strong>
+                          {generatedReport.stats.en_cours} dossiers
+                        </strong>{" "}
+                        sont actuellement en cours d'instruction active
+                      </li>
+                      <li>
+                        <strong>
+                          {generatedReport.stats.transmis_autorite} dossiers
+                        </strong>{" "}
+                        ont été transmis aux autorités compétentes
+                      </li>
+                      <li>
+                        <strong>
+                          {generatedReport.stats.classifier} dossiers
+                        </strong>{" "}
+                        ont été classés sans suite
+                      </li>
+                      <li>
+                        <strong>
+                          {generatedReport.stats.investigation} cas
+                        </strong>{" "}
+                        font l'objet d'une investigation approfondie
+                      </li>
+                    </ul>
+
+                    <p>
+                      Le système FOSIKA continue de démontrer son utilité dans
+                      la lutte contre les fraudes académiques et les
+                      irrégularités dans l'enseignement supérieur. Notre
+                      plateforme assure un suivi rigoureux de chaque signalement
+                      depuis sa réception jusqu'à sa résolution définitive.
+                    </p>
+
+                    {generatedReport.notes && (
+                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                        <h3 className="font-bold text-blue-900 mb-2">
+                          Observations particulières :
+                        </h3>
+                        <p className="text-blue-800 whitespace-pre-wrap text-sm">
+                          {generatedReport.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 mb-4">
-                    <button
-                        className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all h-full ${
-                            activeCategory === "tous"
-                                ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold"
-                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                        }`}
-                        onClick={() => setActiveCategory("tous")}
-                    >
-                        <BarChart className="w-5 h-5 mb-1" />
-                        <span className="text-xs font-medium">Toutes</span>
-                    </button>
+                <div className="mt-8 pt-6 border-t-2 border-gray-800 text-center text-xs text-gray-600">
+                  <p className="font-bold">
+                    © DAAQ-MESUPRES 2025 - Tous droits réservés
+                  </p>
+                  <p className="mt-1">
+                    Système FOSIKA - Plateforme de gestion des signalements
+                  </p>
+                  <p className="mt-2">
+                    Document généré le {generatedReport.dateGeneration} à{" "}
+                    {generatedReport.heureGeneration}
+                  </p>
+                  <p className="mt-1 font-semibold">
+                    À usage officiel - Confidentiel
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">
+                  Le rapport apparaîtra ici après génération
+                </p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Configurez les paramètres et cliquez sur "Générer le Rapport"
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-                    {categories.map((catg) => {
-                        const stats = calculateCategoryStats(catg.id);
-                        const Icon = catg.icon;
-                        return (
-                            <button
-                                key={catg.id}
-                                className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all h-full ${
-                                    activeCategory === catg.id
-                                        ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold"
-                                        : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                                }`}
-                                onClick={() => setActiveCategory(catg.id)}
-                                title={catg.name}
-                            >
-                                <Icon className="w-5 h-5 mb-1" />
-                                <span className="text-xs font-medium truncate w-full text-center">
+  return (
+    <div className="p-4">
+      {/* Toast Notification */}
+      <ToastNotification
+        message={toast.message}
+        type={toast.type}
+        show={toast.show}
+        onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        show={confirmationModal.show}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        onConfirm={handleConfirmation}
+        onCancel={closeConfirmationModal}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+      />
+
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h1 className="text-base font-semibold">
+            Liste complète des signalements
+          </h1>
+          <p className="text-xs text-gray-500">
+            Gestion et suivi des dossiers avec filtres avancés.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <Plus className="w-3 h-3" />
+            Nouveau signalement
+          </button>
+
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="flex items-center gap-1 px-3 py-1 text-xs border rounded-md hover:bg-gray-50"
+          >
+            <FileText className="w-3 h-3" />
+            Générer rapport
+          </button>
+
+          <button
+            onClick={exportReports}
+            className="flex items-center gap-1 px-3 py-1 text-xs border rounded-md hover:bg-gray-50"
+          >
+            <Download className="w-3 h-3" />
+            Exporter CSV
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-6 bg-white rounded-lg border p-4">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-1">
+            Analyse Détaillée par Catégories
+          </h2>
+          <p className="text-sm text-gray-600">
+            Visualisation et analyse approfondie des signalements par catégorie
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 mb-4">
+          <button
+            className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all h-full ${
+              activeCategory === "tous"
+                ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+            }`}
+            onClick={() => setActiveCategory("tous")}
+          >
+            <BarChart className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium">Toutes</span>
+          </button>
+
+          {categories.map((catg) => {
+            const stats = calculateCategoryStats(catg.id);
+            const Icon = catg.icon;
+            return (
+              <button
+                key={catg.id}
+                className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all h-full ${
+                  activeCategory === catg.id
+                    ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+                onClick={() => setActiveCategory(catg.id)}
+                title={catg.name}
+              >
+                <Icon className="w-5 h-5 mb-1" />
+                <span className="text-xs font-medium truncate w-full text-center">
                   {catg.name.split(" ")[0]}
                 </span>
-                                <span className="text-xs text-gray-500 mt-1">
+                <span className="text-xs text-gray-500 mt-1">
                   {stats.total}
                 </span>
-                            </button>
-                        );
-                    })}
-                </div>
+              </button>
+            );
+          })}
+        </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">
-                        {activeCategory === "tous"
-                            ? "Synthèse - Toutes catégories"
-                            : `Synthèse - ${cat?.name}`}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
-                            <div className="text-2xl font-bold text-gray-900">
-                                {activeCategory === "tous"
-                                    ? allReports.length
-                                    : categoryStats.total}
-                            </div>
-                            <div className="text-gray-500 text-sm mt-1">
-                                Signalements totaux
-                            </div>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
-                            <div className="text-2xl font-bold text-amber-600">
-                                {activeCategory === "tous"
-                                    ? reports.filter((r) => r.status === "en_cours").length
-                                    : categoryStats.encours}
-                            </div>
-                            <div className="text-gray-500 text-sm mt-1">En cours</div>
-                        </div>
-                        <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
-                            <div className="text-2xl font-bold text-blue-600">
-                                {activeCategory === "tous"
-                                    ? reports.filter((r) => r.status === "classifier").length
-                                    : categoryStats.resolus}
-                            </div>
-                            <div className="text-gray-500 text-sm mt-1">Résolus</div>
-                        </div>
-                    </div>
-                </div>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-3">
+            {activeCategory === "tous"
+              ? "Synthèse - Toutes catégories"
+              : `Synthèse - ${cat?.name}`}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {activeCategory === "tous"
+                  ? allReports.length
+                  : categoryStats.total}
+              </div>
+              <div className="text-gray-500 text-sm mt-1">
+                Signalements totaux
+              </div>
             </div>
+            <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div className="text-2xl font-bold text-amber-600">
+                {activeCategory === "tous"
+                  ? reports.filter((r) => r.status === "en_cours").length
+                  : categoryStats.encours}
+              </div>
+              <div className="text-gray-500 text-sm mt-1">En cours</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {activeCategory === "tous"
+                  ? reports.filter((r) => r.status === "classifier").length
+                  : categoryStats.resolus}
+              </div>
+              <div className="text-gray-500 text-sm mt-1">Résolus</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
-                <div className="md:col-span-2">
-                    <input
-                        type="text"
-                        value={filters.search}
-                        onChange={(e) => handleFilterChange("search", e.target.value)}
-                        placeholder="Rechercher par référence, nom, description..."
-                        className="w-full px-2 py-1 text-xs border rounded-md"
-                    />
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
+        <div className="md:col-span-2">
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
+            placeholder="Rechercher par référence, nom, description..."
+            className="w-full px-2 py-1 text-xs border rounded-md"
+          />
+        </div>
 
-                <div>
-                    <input
-                        type="date"
-                        value={filters.dateDebut}
-                        onChange={(e) => handleFilterChange("dateDebut", e.target.value)}
-                        className="w-full px-2 py-1 text-xs border rounded-md"
-                        placeholder="Date début"
-                    />
-                </div>
+        <div>
+          <input
+            type="date"
+            value={filters.dateDebut}
+            onChange={(e) => handleFilterChange("dateDebut", e.target.value)}
+            className="w-full px-2 py-1 text-xs border rounded-md"
+            placeholder="Date début"
+          />
+        </div>
 
-                <div>
-                    <input
-                        type="date"
-                        value={filters.dateFin}
-                        onChange={(e) => handleFilterChange("dateFin", e.target.value)}
-                        className="w-full px-2 py-1 text-xs border rounded-md"
-                        placeholder="Date fin"
-                    />
-                </div>
+        <div>
+          <input
+            type="date"
+            value={filters.dateFin}
+            onChange={(e) => handleFilterChange("dateFin", e.target.value)}
+            className="w-full px-2 py-1 text-xs border rounded-md"
+            placeholder="Date fin"
+          />
+        </div>
 
-                <div>
-                    <select
-                        value={filters.statut}
-                        onChange={(e) => handleFilterChange("statut", e.target.value)}
-                        className="w-full px-2 py-1 text-xs border rounded-md"
+        <div>
+          <select
+            value={filters.statut}
+            onChange={(e) => handleFilterChange("statut", e.target.value)}
+            className="w-full px-2 py-1 text-xs border rounded-md"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="en_cours">En cours</option>
+            <option value="classifier">Dossier classé sans suite</option>
+            <option value="investigation">Ouverture d'enquêtes</option>
+            <option value="transmis_autorite">Transmis aux autorités</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-2 text-xs">
+        <button
+          onClick={resetFilters}
+          className="flex items-center gap-1 px-2 py-1 border rounded-md hover:bg-gray-50"
+        >
+          <X className="w-3 h-3" />
+          Réinitialiser les filtres
+        </button>
+        <div className="text-gray-500">
+          {filteredReports.length} signalements trouvés
+        </div>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 p-2 mb-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-md">
+          <AlertCircle className="w-4 h-4" />
+          <span>Erreur lors du chargement des données : {error}</span>
+        </div>
+      )}
+
+      <div className="border rounded-md overflow-hidden">
+        <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="p-4 text-center text-xs text-gray-500">
+              Chargement en cours...
+            </div>
+          ) : filteredReports.length === 0 ? (
+            <div className="p-4 text-center text-xs text-gray-500">
+              Aucun signalement trouvé avec les filtres actuels
+            </div>
+          ) : (
+            <table className="min-w-full text-xs">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-2 py-2 text-left">
+                    <button
+                      onClick={() => handleSort("id")}
+                      className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
                     >
-                        <option value="">Tous les statuts</option>
-                        <option value="en_cours">En cours</option>
-                        <option value="classifier">Dossier classé sans suite</option>
-                        <option value="investigation">Ouverture d'enquêtes</option>
-                        <option value="transmis_autorite">Transmis aux autorités</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-2 text-xs">
-                <button
-                    onClick={resetFilters}
-                    className="flex items-center gap-1 px-2 py-1 border rounded-md hover:bg-gray-50"
-                >
-                    <X className="w-3 h-3" />
-                    Réinitialiser les filtres
-                </button>
-                <div className="text-gray-500">
-                    {filteredReports.length} signalements trouvés
-                </div>
-            </div>
-
-            {error && (
-                <div className="flex items-center gap-2 p-2 mb-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-md">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Erreur lors du chargement des données : {error}</span>
-                </div>
-            )}
-
-            <div className="border rounded-md overflow-hidden">
-                <div className="overflow-x-auto">
-                    {isLoading ? (
-                        <div className="p-4 text-center text-xs text-gray-500">
-                            Chargement en cours...
-                        </div>
-                    ) : filteredReports.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-gray-500">
-                            Aucun signalement trouvé avec les filtres actuels
-                        </div>
-                    ) : (
-                        <table className="min-w-full text-xs">
-                            <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-2 py-2 text-left">
-                                    <button
-                                        onClick={() => handleSort("id")}
-                                        className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
-                                    >
-                                        <span>ID</span>
-                                        <SortIcon
-                                            isSorted={sortConfig.key === "id"}
-                                            isAsc={sortConfig.direction === "asc"}
-                                        />
-                                    </button>
-                                </th>
-                                <th className="px-2 py-2 text-left">
-                                    <button
-                                        onClick={() => handleSort("reference")}
-                                        className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
-                                    >
-                                        <span>RÉFÉRENCE</span>
-                                        <SortIcon
-                                            isSorted={sortConfig.key === "reference"}
-                                            isAsc={sortConfig.direction === "asc"}
-                                        />
-                                    </button>
-                                </th>
-                                <th className="px-2 py-2 text-left">
-                                    <button
-                                        onClick={() => handleSort("date")}
-                                        className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
-                                    >
-                                        <span>DATE</span>
-                                        <SortIcon
-                                            isSorted={sortConfig.key === "date"}
-                                            isAsc={sortConfig.direction === "asc"}
-                                        />
-                                    </button>
-                                </th>
-                                <th className="px-2 py-2 text-left">NOM / PRÉNOM</th>
-                                <th className="px-2 py-2 text-left">CATÉGORIE</th>
-                                <th className="px-2 py-2 text-left">DESCRIPTION</th>
-                                <th className="px-2 py-2 text-left">STATUT</th>
-                                <th className="px-2 py-2 text-left">ACTIONS</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {paginatedReports.map((report) => (
-                                <tr key={report.id} className="border-t hover:bg-gray-50">
-                                    <td className="px-2 py-2 font-medium">{report.id}</td>
-                                    <td className="px-2 py-2 font-medium">
-                                        {report.reference}
-                                    </td>
-                                    <td className="px-2 py-2">{formatDate(report.date)}</td>
-                                    <td className="px-2 py-2">{report.nom_prenom}</td>
-                                    <td className="px-2 py-2">{report.categorieLabel}</td>
-                                    <td className="px-2 py-2 max-w-[150px]">
-                                        <div className="text-xs text-gray-600 line-clamp-2">
-                                            {report.shortDescription}
-                                        </div>
-                                    </td>
-                                    <td className="px-2 py-2">
+                      <span>ID</span>
+                      <SortIcon
+                        isSorted={sortConfig.key === "id"}
+                        isAsc={sortConfig.direction === "asc"}
+                      />
+                    </button>
+                  </th>
+                  <th className="px-2 py-2 text-left">
+                    <button
+                      onClick={() => handleSort("reference")}
+                      className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
+                    >
+                      <span>RÉFÉRENCE</span>
+                      <SortIcon
+                        isSorted={sortConfig.key === "reference"}
+                        isAsc={sortConfig.direction === "asc"}
+                      />
+                    </button>
+                  </th>
+                  <th className="px-2 py-2 text-left">
+                    <button
+                      onClick={() => handleSort("date")}
+                      className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full"
+                    >
+                      <span>DATE</span>
+                      <SortIcon
+                        isSorted={sortConfig.key === "date"}
+                        isAsc={sortConfig.direction === "asc"}
+                      />
+                    </button>
+                  </th>
+                  <th className="px-2 py-2 text-left">NOM / PRÉNOM</th>
+                  <th className="px-2 py-2 text-left">CATÉGORIE</th>
+                  <th className="px-2 py-2 text-left">DESCRIPTION</th>
+                  <th className="px-2 py-2 text-left">STATUT</th>
+                  <th className="px-2 py-2 text-left">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedReports.map((report) => (
+                  <tr key={report.id} className="border-t hover:bg-gray-50">
+                    <td className="px-2 py-2 font-medium">{report.id}</td>
+                    <td className="px-2 py-2 font-medium">
+                      {report.reference}
+                    </td>
+                    <td className="px-2 py-2">{formatDate(report.date)}</td>
+                    <td className="px-2 py-2">{report.nom_prenom}</td>
+                    <td className="px-2 py-2">{report.categorieLabel}</td>
+                    <td className="px-2 py-2 max-w-[150px]">
+                      <div className="text-xs text-gray-600 line-clamp-2">
+                        {report.shortDescription}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2">
                       <span
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              report.status === "en_cours"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : report.status === "transmis_autorite"
-                                      ? "bg-indigo-100 text-indigo-800"
-                                      : report.status === "classifier"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : report.status === "investigation"
-                                              ? "bg-purple-100 text-purple-800"
-                                              : "bg-gray-100 text-gray-800"
-                          }`}
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          report.status === "en_cours"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : report.status === "transmis_autorite"
+                            ? "bg-indigo-100 text-indigo-800"
+                            : report.status === "classifier"
+                            ? "bg-blue-100 text-blue-800"
+                            : report.status === "investigation"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
                       >
                         {getDisplayStatus(report.status)}
                       </span>
-                                    </td>
-                                    <td className="px-2 py-2">
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => handleViewReport(report)}
-                                                className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
-                                                title="Voir détails"
-                                            >
-                                                <Eye className="w-3 h-3" />
-                                            </button>
+                    </td>
+                    <td className="px-2 py-2">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleViewReport(report)}
+                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                          title="Voir détails"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </button>
 
-                                            <button
-                                                onClick={() => handlePrintReport(report)}
-                                                className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                                                title="Imprimer"
-                                            >
-                                                <Printer className="w-3 h-3" />
-                                            </button>
+                        <button
+                          onClick={() => handlePrintReport(report)}
+                          className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          title="Imprimer"
+                        >
+                          <Printer className="w-3 h-3" />
+                        </button>
 
-                                            <button
-                                                onClick={() => handleStatusUpdate(report)}
-                                                className="p-1 text-amber-600 hover:bg-amber-100 rounded transition-colors"
-                                                title="Mettre à jour statut"
-                                            >
-                                                <Filter className="w-3 h-3" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleEditReport(report)}
-                                                className="p-1 text-indigo-600 hover:bg-indigo-100 rounded transition-colors"
-                                                title="Modifier"
-                                            >
-                                                <Edit className="w-3 h-3" />
-                                            </button>
+                        <button
+                          onClick={() => handleStatusUpdate(report)}
+                          className="p-1 text-amber-600 hover:bg-amber-100 rounded transition-colors"
+                          title="Mettre à jour statut"
+                        >
+                          <Filter className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleEditReport(report)}
+                          className="p-1 text-indigo-600 hover:bg-indigo-100 rounded transition-colors"
+                          title="Modifier"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
 
-                                            <button
-                                                onClick={() => handleContactReport(report)}
-                                                title="Contacter"
-                                                className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
-                                            >
-                                                <MessageCircle className="w-3 h-3" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteReport(report)}
-                                                className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
-                                                title="Supprimer"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
+                        <button
+                          onClick={() => handleContactReport(report)}
+                          title="Contacter"
+                          className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReport(report)}
+                          className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
 
-                {filteredReports.length > 0 && (
-                    <div className="flex items-center justify-between px-2 py-2 border-t bg-gray-50">
-                        <div className="flex items-center gap-2 text-xs">
-                            <span>Éléments par page :</span>
-                            <select
-                                value={itemsPerPage}
-                                onChange={(e) => {
-                                    setItemsPerPage(Number(e.target.value));
-                                    setCurrentPage(1);
-                                }}
-                                className="px-2 py-1 border rounded-md text-xs"
-                            >
-                                <option value={10}>10</option>
-                                <option value={30}>30</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </select>
-                            <span className="text-gray-500">
+        {filteredReports.length > 0 && (
+          <div className="flex items-center justify-between px-2 py-2 border-t bg-gray-50">
+            <div className="flex items-center gap-2 text-xs">
+              <span>Éléments par page :</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-1 border rounded-md text-xs"
+              >
+                <option value={10}>10</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-gray-500">
                 {indexOfFirstItem + 1}-
-                                {Math.min(indexOfLastItem, filteredReports.length)} sur{" "}
-                                {filteredReports.length}
+                {Math.min(indexOfLastItem, filteredReports.length)} sur{" "}
+                {filteredReports.length}
               </span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="p-1 border rounded-md disabled:opacity-50"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-
-                            {getPageNumbers().map((page, idx) =>
-                                    page === "..." ? (
-                                        <span
-                                            key={`ellipsis-${idx}`}
-                                            className="px-2 text-xs text-gray-500"
-                                        >
-                    ...
-                  </span>
-                                    ) : (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`px-2 py-1 text-xs border rounded-md ${
-                                                currentPage === page
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-white"
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    )
-                            )}
-
-                            <button
-                                onClick={() =>
-                                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                                }
-                                disabled={currentPage === totalPages || totalPages === 0}
-                                className="p-1 border rounded-md disabled:opacity-50"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {showCreateModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
-                            <h2 className="text-lg font-semibold">Nouveau Signalement</h2>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className="p-1 hover:bg-gray-100 rounded"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 border rounded-md disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-                        <form onSubmit={handleCreateReport} className="p-4 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Type de signalement <span className="text-red-600">*</span>
-                                </label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="radio"
-                                            name="type"
-                                            value="identifie"
-                                            checked={newReport.type === "identifie"}
-                                            onChange={(e) =>
-                                                setNewReport({ ...newReport, type: e.target.value })
-                                            }
-                                            className="w-4 h-4"
-                                        />
-                                        <span>Je m'identifie</span>
-                                    </label>
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="radio"
-                                            name="type"
-                                            value="anonyme"
-                                            checked={newReport.type === "anonyme"}
-                                            onChange={(e) =>
-                                                setNewReport({ ...newReport, type: e.target.value })
-                                            }
-                                            className="w-4 h-4"
-                                        />
-                                        <span>Anonyme</span>
-                                    </label>
-                                </div>
-                            </div>
+              {getPageNumbers().map((page, idx) =>
+                page === "..." ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-2 text-xs text-gray-500"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-2 py-1 text-xs border rounded-md ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
 
-                            {newReport.type === "identifie" && (
-                                <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nom et Prénom <span className="text-red-600">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={newReport.name}
-                                            onChange={(e) =>
-                                                setNewReport({ ...newReport, name: e.target.value })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            placeholder="Votre nom complet"
-                                        />
-                                    </div>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="p-1 border rounded-md disabled:opacity-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Email
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={newReport.email}
-                                                onChange={(e) =>
-                                                    setNewReport({ ...newReport, email: e.target.value })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                placeholder="email@exemple.com"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Téléphone
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                value={newReport.phone}
-                                                onChange={(e) =>
-                                                    setNewReport({ ...newReport, phone: e.target.value })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                placeholder="+261 XX XX XXX XX"
-                                            />
-                                        </div>
-                                    </div>
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-semibold">Nouveau Signalement</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Adresse
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={newReport.address}
-                                            onChange={(e) =>
-                                                setNewReport({ ...newReport, address: e.target.value })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            placeholder="Ville, région..."
-                                        />
-                                    </div>
-                                </>
-                            )}
+            <form onSubmit={handleCreateReport} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de signalement <span className="text-red-600">*</span>
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="identifie"
+                      checked={newReport.type === "identifie"}
+                      onChange={(e) =>
+                        setNewReport({ ...newReport, type: e.target.value })
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span>Je m'identifie</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="anonyme"
+                      checked={newReport.type === "anonyme"}
+                      onChange={(e) =>
+                        setNewReport({ ...newReport, type: e.target.value })
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span>Anonyme</span>
+                  </label>
+                </div>
+              </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Catégorie <span className="text-red-600">*</span>
-                                </label>
-                                <select
-                                    value={newReport.category}
-                                    onChange={(e) =>
-                                        setNewReport({ ...newReport, category: e.target.value })
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    required
-                                >
-                                    <option value="">Sélectionner une catégorie</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+              {newReport.type === "identifie" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom et Prénom <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newReport.name}
+                      onChange={(e) =>
+                        setNewReport({ ...newReport, name: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Votre nom complet"
+                    />
+                  </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Description <span className="text-red-600">*</span>
-                                </label>
-                                <textarea
-                                    value={newReport.description}
-                                    onChange={(e) =>
-                                        setNewReport({ ...newReport, description: e.target.value })
-                                    }
-                                    rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    placeholder="Décrivez en détail la situation..."
-                                    required
-                                />
-                            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={newReport.email}
+                        onChange={(e) =>
+                          setNewReport({ ...newReport, email: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="email@exemple.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone
+                      </label>
+                      <input
+                        type="tel"
+                        value={newReport.phone}
+                        onChange={(e) =>
+                          setNewReport({ ...newReport, phone: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        placeholder="+261 XX XX XXX XX"
+                      />
+                    </div>
+                  </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Pièces jointes (optionnel)
-                                </label>
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept=".jpg,.jpeg,.png,.pdf,.mp4"
-                                    onChange={handleFileChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Formats: JPG, PNG, PDF, MP4 - Max 8 Mo/fichier
-                                </p>
-                            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Adresse
+                    </label>
+                    <input
+                      type="text"
+                      value={newReport.address}
+                      onChange={(e) =>
+                        setNewReport({ ...newReport, address: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Ville, région..."
+                    />
+                  </div>
+                </>
+              )}
 
-                            {newReport.files.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700">
-                                        Fichiers ajoutés ({newReport.files.length})
-                                    </p>
-                                    {newReport.files.map((file, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                                        >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Catégorie <span className="text-red-600">*</span>
+                </label>
+                <select
+                  value={newReport.category}
+                  onChange={(e) =>
+                    setNewReport({ ...newReport, category: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Sélectionner une catégorie</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description <span className="text-red-600">*</span>
+                </label>
+                <textarea
+                  value={newReport.description}
+                  onChange={(e) =>
+                    setNewReport({ ...newReport, description: e.target.value })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Décrivez en détail la situation..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pièces jointes (optionnel)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf,.mp4"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formats: JPG, PNG, PDF, MP4 - Max 8 Mo/fichier
+                </p>
+              </div>
+
+              {newReport.files.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    Fichiers ajoutés ({newReport.files.length})
+                  </p>
+                  {newReport.files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                    >
                       <span className="text-sm truncate flex-1">
                         {file.name}
                       </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeFile(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCreateModal(false)}
-                                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                                >
-                                    Annuler
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={
-                                        !newReport.category ||
-                                        !newReport.description ||
-                                        (newReport.type === "identifie" && !newReport.name.trim())
-                                    }
-                                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Créer le signalement
-                                </button>
-                            </div>
-                        </form>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="ml-2 text-red-600 hover:text-red-800"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
+                  ))}
                 </div>
-            )}
+              )}
 
-            {showStatusModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg w-full max-w-md mx-4">
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold">Mettre à jour le statut</h2>
-                            <button
-                                onClick={() => setShowStatusModal(false)}
-                                className="p-1 hover:bg-gray-100 rounded"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    !newReport.category ||
+                    !newReport.description ||
+                    (newReport.type === "identifie" && !newReport.name.trim())
+                  }
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Créer le signalement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-                        <form onSubmit={handleStatusSubmit} className="p-4 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nouveau statut <span className="text-red-600">*</span>
-                                </label>
-                                <select
-                                    value={statusData.status}
-                                    onChange={(e) =>
-                                        setStatusData((prev) => ({
-                                            ...prev,
-                                            status: e.target.value,
-                                        }))
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    required
-                                >
-                                    <option value="">Sélectionner un statut</option>
-                                    <option value="investigation">Ouverture d'enquêtes</option>
-                                    <option value="transmis_autorite">
-                                        Transmis aux autorités compétentes
-                                    </option>
-                                    <option value="classifier">Dossier classé sans suite</option>
-                                </select>
-                            </div>
+      {showStatusModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg w-full max-w-md mx-4">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Mettre à jour le statut</h2>
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowStatusModal(false)}
-                                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                                >
-                                    Annuler
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700"
-                                >
-                                    Mettre à jour le statut
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <form onSubmit={handleStatusSubmit} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nouveau statut <span className="text-red-600">*</span>
+                </label>
+                <select
+                  value={statusData.status}
+                  onChange={(e) =>
+                    setStatusData((prev) => ({
+                      ...prev,
+                      status: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Sélectionner un statut</option>
+                  <option value="investigation">Ouverture d'enquêtes</option>
+                  <option value="transmis_autorite">
+                    Transmis aux autorités compétentes
+                  </option>
+                  <option value="classifier">Dossier classé sans suite</option>
+                </select>
+              </div>
 
-            {showEditModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold">Modifier le signalement</h2>
-                            <button
-                                onClick={() => setShowEditModal(false)}
-                                className="p-1 hover:bg-gray-100 rounded"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowStatusModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700"
+                >
+                  Mettre à jour le statut
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-                        <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                                <p className="text-sm text-gray-600">
-                                    <span className="font-semibold">Type:</span>{" "}
-                                    <span
-                                        className={
-                                            selectedReportForAction?.type_signalement === "Anonyme"
-                                                ? "text-blue-600"
-                                                : "text-green-600"
-                                        }
-                                    >
+      {showEditModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Modifier le signalement</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Type:</span>{" "}
+                  <span
+                    className={
+                      selectedReportForAction?.type_signalement === "Anonyme"
+                        ? "text-blue-600"
+                        : "text-green-600"
+                    }
+                  >
                     {selectedReportForAction?.type_signalement}
                   </span>
-                                </p>
-                                {selectedReportForAction?.type_signalement === "Anonyme" && (
-                                    <p className="text-xs text-amber-600 mt-1">
-                                        ⚠️ Seuls la description et les pièces jointes peuvent être
-                                        modifiés pour un signalement anonyme
-                                    </p>
-                                )}
-                            </div>
+                </p>
+                {selectedReportForAction?.type_signalement === "Anonyme" && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠️ Seuls la description et les pièces jointes peuvent être
+                    modifiés pour un signalement anonyme
+                  </p>
+                )}
+              </div>
 
-                            {selectedReportForAction?.type_signalement !== "Anonyme" && (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Nom et Prénom
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editData.nom_prenom}
-                                                onChange={(e) =>
-                                                    setEditData({
-                                                        ...editData,
-                                                        nom_prenom: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                placeholder="Nom complet"
-                                                disabled={
-                                                    selectedReportForAction?.type_signalement ===
-                                                    "Anonyme"
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Email
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={editData.email}
-                                                onChange={(e) =>
-                                                    setEditData({ ...editData, email: e.target.value })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                placeholder="email@exemple.com"
-                                                disabled={
-                                                    selectedReportForAction?.type_signalement ===
-                                                    "Anonyme"
-                                                }
-                                            />
-                                        </div>
-                                    </div>
+              {selectedReportForAction?.type_signalement !== "Anonyme" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nom et Prénom
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.nom_prenom}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            nom_prenom: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        placeholder="Nom complet"
+                        disabled={
+                          selectedReportForAction?.type_signalement ===
+                          "Anonyme"
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={editData.email}
+                        onChange={(e) =>
+                          setEditData({ ...editData, email: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        placeholder="email@exemple.com"
+                        disabled={
+                          selectedReportForAction?.type_signalement ===
+                          "Anonyme"
+                        }
+                      />
+                    </div>
+                  </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Téléphone
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editData.telephone}
-                                                onChange={(e) =>
-                                                    setEditData({
-                                                        ...editData,
-                                                        telephone: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                placeholder="+261 XX XX XXX XX"
-                                                disabled={
-                                                    selectedReportForAction?.type_signalement ===
-                                                    "Anonyme"
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Ville
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editData.city}
-                                                onChange={(e) =>
-                                                    setEditData({ ...editData, city: e.target.value })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                placeholder="Ville"
-                                                disabled={
-                                                    selectedReportForAction?.type_signalement ===
-                                                    "Anonyme"
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Province
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editData.province}
-                                                onChange={(e) =>
-                                                    setEditData({
-                                                        ...editData,
-                                                        province: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                                placeholder="Province"
-                                                disabled={
-                                                    selectedReportForAction?.type_signalement ===
-                                                    "Anonyme"
-                                                }
-                                            />
-                                        </div>
-                                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.telephone}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            telephone: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        placeholder="+261 XX XX XXX XX"
+                        disabled={
+                          selectedReportForAction?.type_signalement ===
+                          "Anonyme"
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ville
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.city}
+                        onChange={(e) =>
+                          setEditData({ ...editData, city: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        placeholder="Ville"
+                        disabled={
+                          selectedReportForAction?.type_signalement ===
+                          "Anonyme"
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Province
+                      </label>
+                      <input
+                        type="text"
+                        value={editData.province}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            province: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        placeholder="Province"
+                        disabled={
+                          selectedReportForAction?.type_signalement ===
+                          "Anonyme"
+                        }
+                      />
+                    </div>
+                  </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Catégorie
-                                        </label>
-                                        <select
-                                            value={editData.category}
-                                            onChange={(e) =>
-                                                setEditData({ ...editData, category: e.target.value })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
-                                            disabled={
-                                                selectedReportForAction?.type_signalement === "Anonyme"
-                                            }
-                                        >
-                                            <option value="">Sélectionner une catégorie</option>
-                                            {categories.map((cat) => (
-                                                <option key={cat.id} value={cat.id}>
-                                                    {cat.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </>
-                            )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Catégorie
+                    </label>
+                    <select
+                      value={editData.category}
+                      onChange={(e) =>
+                        setEditData({ ...editData, category: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      disabled={
+                        selectedReportForAction?.type_signalement === "Anonyme"
+                      }
+                    >
+                      <option value="">Sélectionner une catégorie</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Description <span className="text-red-600">*</span>
-                                </label>
-                                <textarea
-                                    value={editData.description}
-                                    onChange={(e) =>
-                                        setEditData({ ...editData, description: e.target.value })
-                                    }
-                                    rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description <span className="text-red-600">*</span>
+                </label>
+                <textarea
+                  value={editData.description}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description: e.target.value })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
 
-                            {selectedReportForAction?.files &&
-                                selectedReportForAction.files.length > 0 && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Pièces jointes actuelles
-                                        </label>
-                                        <div className="space-y-2">
-                                            {selectedReportForAction.files.map((file, index) => {
-                                                const fileName =
-                                                    typeof file === "string" ? file : file.name;
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-center justify-between bg-gray-50 p-2 rounded border"
-                                                    >
+              {selectedReportForAction?.files &&
+                selectedReportForAction.files.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pièces jointes actuelles
+                    </label>
+                    <div className="space-y-2">
+                      {selectedReportForAction.files.map((file, index) => {
+                        const fileName =
+                          typeof file === "string" ? file : file.name;
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-gray-50 p-2 rounded border"
+                          >
                             <span className="text-sm truncate flex-1">
                               {fileName}
                             </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newFiles =
-                                                                    selectedReportForAction.files.filter(
-                                                                        (_, i) => i !== index
-                                                                    );
-                                                                setSelectedReportForAction({
-                                                                    ...selectedReportForAction,
-                                                                    files: newFiles,
-                                                                });
-                                                                setEditData({
-                                                                    ...editData,
-                                                                    filesToRemove: [
-                                                                        ...(editData.filesToRemove || []),
-                                                                        fileName,
-                                                                    ],
-                                                                });
-                                                            }}
-                                                            className="ml-2 text-red-600 hover:text-red-800"
-                                                            title="Supprimer ce fichier"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newFiles =
+                                  selectedReportForAction.files.filter(
+                                    (_, i) => i !== index
+                                  );
+                                setSelectedReportForAction({
+                                  ...selectedReportForAction,
+                                  files: newFiles,
+                                });
+                                setEditData({
+                                  ...editData,
+                                  filesToRemove: [
+                                    ...(editData.filesToRemove || []),
+                                    fileName,
+                                  ],
+                                });
+                              }}
+                              className="ml-2 text-red-600 hover:text-red-800"
+                              title="Supprimer ce fichier"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Ajouter de nouvelles pièces jointes
-                                </label>
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept=".jpg,.jpeg,.png,.pdf,.mp4"
-                                    onChange={(e) => {
-                                        const files = Array.from(e.target.files);
-                                        setEditData({ ...editData, newFiles: files });
-                                    }}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Formats: JPG, PNG, PDF, MP4 - Max 25 Mo/fichier
-                                </p>
-                            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ajouter de nouvelles pièces jointes
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf,.mp4"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    setEditData({ ...editData, newFiles: files });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formats: JPG, PNG, PDF, MP4 - Max 25 Mo/fichier
+                </p>
+              </div>
 
-                            {editData.newFiles && editData.newFiles.length > 0 && (
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 mb-2">
-                                        Nouveaux fichiers à ajouter ({editData.newFiles.length})
-                                    </p>
-                                    <div className="space-y-2">
-                                        {editData.newFiles.map((file, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-200"
-                                            >
+              {editData.newFiles && editData.newFiles.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Nouveaux fichiers à ajouter ({editData.newFiles.length})
+                  </p>
+                  <div className="space-y-2">
+                    {editData.newFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-blue-50 p-2 rounded border border-blue-200"
+                      >
                         <span className="text-sm truncate flex-1">
                           {file.name}
                         </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newFiles = editData.newFiles.filter(
-                                                            (_, i) => i !== index
-                                                        );
-                                                        setEditData({ ...editData, newFiles });
-                                                    }}
-                                                    className="ml-2 text-red-600 hover:text-red-800"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowEditModal(false)}
-                                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                                >
-                                    Annuler
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                                >
-                                    Modifier
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newFiles = editData.newFiles.filter(
+                              (_, i) => i !== index
+                            );
+                            setEditData({ ...editData, newFiles });
+                          }}
+                          className="ml-2 text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-            )}
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                >
+                  Modifier
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default ReportsView;

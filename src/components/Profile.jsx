@@ -190,7 +190,7 @@ const TwoFactorModal = ({ isOpen, onClose, onSubmit, isLoading, email }) => {
     if (code.length === 6 && !isLoading) {
       onSubmit(code);
     }
-  }, [code]);
+  }, [code, isLoading, onSubmit]);
 
   const handleInputChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -365,7 +365,7 @@ const EmailVerificationModal = ({
     if (code.length === 6 && !isLoading && timeLeft > 0) {
       onSubmit(code);
     }
-  }, [code]);
+  }, [code, isLoading, onSubmit, timeLeft]);
 
   const handleInputChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -394,7 +394,6 @@ const EmailVerificationModal = ({
       setTimeout(() => setResendSuccess(false), 3000);
       inputRef.current?.focus();
     } catch (error) {
-      console.error("Erreur renvoi:", error);
     } finally {
       setResendLoading(false);
     }
@@ -680,7 +679,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
       minLength: password.length >= 8,
       hasUpperCase: /[A-Z]/.test(password),
       hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>_\-+=\[\\\];'/`~]/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>_\-+=[\];'/`~]/.test(password),
     });
   }, [profileData.newpassword]);
 
@@ -690,7 +689,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
       const response = await API.get("/profile");
       if (response.data.success) {
         const data = response.data.data;
-        console.log("Données du profil chargées:", data);
         setProfileData((prev) => ({
           ...prev,
           ...data,
@@ -724,7 +722,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         }
       }
     } catch (error) {
-      console.error("Erreur profil:", error);
       showToastMessage("Erreur lors du chargement du profil", "error");
     } finally {
       setIsLoading(false);
@@ -736,13 +733,8 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
     setErrors({});
     setFieldErrors({});
 
-    console.log("🔄 Sending verification email to:", profileData.email);
-
     try {
-      console.log("📤 API call to /email/verification-notification");
       const response = await API.post("/email/verification-notification");
-
-      console.log("✅ API Response:", response.data);
 
       if (response.data.success) {
         showToastMessage(
@@ -753,18 +745,12 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         // Ouvrir la modal pour entrer le code
         setShowEmailVerificationModal(true);
       } else {
-        console.error("❌ API returned success: false", response.data);
         showToastMessage(
           response.data.message || "La réponse du serveur indique un échec.",
           "error"
         );
       }
     } catch (error) {
-      console.error("❌ Verification email error:", error);
-      console.error("❌ Error response:", error.response?.data);
-      console.error("❌ Error status:", error.response?.status);
-      console.error("❌ Error headers:", error.response?.headers);
-
       showToastMessage(
         error.response?.data?.message ||
           error.response?.data?.error ||
@@ -775,7 +761,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
 
       // Affichez plus de détails dans la console
       if (error.response?.data?.debug) {
-        console.error("🔍 Debug info:", error.response.data.debug);
       }
     } finally {
       setIsLoading(false);
@@ -790,7 +775,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
       }
       return false;
     } catch (error) {
-      console.error("Erreur renvoi code:", error);
       return false;
     }
   };
@@ -819,10 +803,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         showToastMessage(response.data.message || "Code invalide.", "error");
       }
     } catch (error) {
-      console.error(
-        "Erreur vérification code:",
-        error.response?.data || error.message
-      );
       showToastMessage(
         error.response?.data?.message ||
           "Code invalide ou expiré. Veuillez réessayer.",
@@ -867,7 +847,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
           showToastMessage("Double authentification désactivée.");
         }
       } catch (error) {
-        console.error("Erreur désactivation 2FA:", error);
         showToastMessage("Erreur lors de la désactivation.", "error");
       }
     } else {
@@ -880,7 +859,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
           setShowTwoFactorModal(true);
         }
       } catch (error) {
-        console.error("Erreur initialisation 2FA:", error);
         showToastMessage("Impossible d'initialiser la 2FA.", "error");
       }
     }
@@ -906,10 +884,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         showToastMessage(response.data.message || "Code invalide.", "error");
       }
     } catch (error) {
-      console.error(
-        "Erreur vérification 2FA:",
-        error.response?.data || error.message
-      );
       showToastMessage(
         error.response?.data?.message ||
           "Code invalide ou expiré. Veuillez réessayer.",
@@ -965,7 +939,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         showToastMessage("Erreur lors du téléchargement de l'image", "error");
       }
     } catch (err) {
-      console.error("Erreur avatar:", err);
       showToastMessage("Erreur lors du téléchargement", "error");
     } finally {
       setAvatarLoading(false);
@@ -1014,11 +987,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         specialisations: specialisationsString,
       };
 
-      console.log("Données corrigées envoyées:", dataToSend);
-
       const res = await API.put("/profile", dataToSend);
-
-      console.log("Réponse du backend:", res.data);
 
       if (res.data.success) {
         showToastMessage("Informations mises à jour avec succès");
@@ -1028,14 +997,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         showToastMessage("Erreur lors de la mise à jour", "error");
       }
     } catch (err) {
-      console.error("Erreur complète:", err);
-      console.error("Réponse d'erreur:", err.response?.data);
-
       if (err.response?.data?.errors) {
-        console.error(
-          "Erreurs détaillées:",
-          JSON.stringify(err.response.data.errors, null, 2)
-        );
         setFieldErrors(err.response.data.errors);
         showToastMessage(
           "Veuillez corriger les erreurs de validation",
@@ -1082,7 +1044,6 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         showToastMessage("Erreur lors du changement de mot de passe", "error");
       }
     } catch (err) {
-      console.error("Erreur mot de passe:", err.response?.data || err.message);
       if (err.response?.data?.errors) {
         setFieldErrors(err.response.data.errors);
         showToastMessage(
@@ -1148,13 +1109,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ring-1 ring-slate-900/5">
           {/* --- HEADER BLEU PRO (HAUTEUR RÉDUITE) --- */}
-          <div
-            className={`relative h-28 bg-gradient-to-r ${currentRole.gradient}`}
-          >
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_1px_1px,#ffffff_1px,transparent_0)] bg-[length:20px_20px]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-          </div>
-
+          <div className="relative h-28"></div>
           <div className="px-6 pb-6">
             <div className="relative flex items-end gap-5 -mt-12">
               {/* Avatar Wrapper */}

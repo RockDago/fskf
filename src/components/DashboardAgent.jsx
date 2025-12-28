@@ -6,10 +6,10 @@ import Header from "./Header";
 import SidebarAgent from "./SidebarAgent";
 import DashboardView from "./views/DashboardView";
 import ReportsView from "./views/ReportsView";
-import ActivitesView from "./views/ActivitesView";
+
 import Profile from "./Profile";
 import NotificationsView from "./views/NotificationsView";
-import AgentReportsView from "./views/AgentReportsView"; // ✅ import corrigé
+import AgentReportsView from "./views/AgentReportsView";
 
 const DashboardAgent = ({ onDeconnexion }) => {
     const [currentView, setCurrentView] = useState("dashboard");
@@ -17,21 +17,16 @@ const DashboardAgent = ({ onDeconnexion }) => {
     const [agentData, setAgentData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // ✅ MODE DÉMO : Charge SEULEMENT localStorage (PAS de /profile)
     useEffect(() => {
         const loadProfile = () => {
             try {
-                console.log("🎭 [MODE DÉMO] Agent - Chargement depuis localStorage...");
-                const user = AuthService.getUser(); // localStorage/sessionStorage
+                const user = AuthService.getUser();
                 if (user && user.email) {
-                    console.log("✅ [MODE DÉMO] Agent chargé:", user.email);
                     setAgentData(user);
                 } else {
-                    console.warn("⚠️ [MODE DÉMO] Pas de user → déconnexion");
                     onDeconnexion?.();
                 }
             } catch (error) {
-                console.error("❌ [MODE DÉMO] Erreur:", error);
                 onDeconnexion?.();
             } finally {
                 setIsLoading(false);
@@ -44,7 +39,6 @@ const DashboardAgent = ({ onDeconnexion }) => {
     const handleNavigateToProfile = () => setCurrentView("profil");
     const handleNavigateToNotifications = () => setCurrentView("notifications");
 
-    // Écran de chargement
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -56,7 +50,6 @@ const DashboardAgent = ({ onDeconnexion }) => {
         );
     }
 
-    // Sécurité : si pas de données agent
     if (!agentData) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -75,7 +68,6 @@ const DashboardAgent = ({ onDeconnexion }) => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
             <Header
                 adminData={agentData}
                 onDeconnexion={onDeconnexion}
@@ -84,7 +76,6 @@ const DashboardAgent = ({ onDeconnexion }) => {
             />
 
             <div className="flex pt-20">
-                {/* Sidebar */}
                 <SidebarAgent
                     currentView={currentView}
                     onViewChange={setCurrentView}
@@ -92,7 +83,6 @@ const DashboardAgent = ({ onDeconnexion }) => {
                     onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
                 />
 
-                {/* Contenu principal */}
                 <main
                     className={`flex-1 transition-all duration-300 ${
                         sidebarCollapsed ? "ml-16" : "ml-64"
@@ -100,15 +90,13 @@ const DashboardAgent = ({ onDeconnexion }) => {
                 >
                     {currentView === "dashboard" && <DashboardView data={agentData} />}
 
-                    {/* Vue signalements classique */}
                     {currentView === "signalements" && (
                         <ReportsView data={agentData} />
                     )}
 
-                    {/* ✅ Nouvelle vue AgentReportsView */}
                     {currentView === "AgentReportView" && <AgentReportsView />}
 
-                    {currentView === "activites" && <ActivitesView data={agentData} />}
+
                     {currentView === "notifications" && (
                         <NotificationsView data={agentData} />
                     )}

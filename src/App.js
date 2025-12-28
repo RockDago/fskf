@@ -19,7 +19,7 @@ import Page404 from "./components/Page404";
 
 import DashboardAdmin from "./components/DashboardAdmin";
 import DashboardAgent from "./components/DashboardAgent";
-import DashboardInvest from "./components/DashboardInvest";
+
 import TwoFactorVerify from "./components/TwoFactorVerify";
 import { authUtils } from "./utils/authUtils";
 
@@ -87,14 +87,6 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["agent"]}>
               <DashboardAgent />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/investigateur/*"
-          element={
-            <PrivateRoute allowedRoles={["investigateur"]}>
-              <DashboardInvest />
             </PrivateRoute>
           }
         />

@@ -12,11 +12,11 @@ import IndicateursView from "./views/IndicateursView";
 import NotificationsView from "./views/NotificationsView";
 import JournalView from "./views/JournalView";
 import Profile from "./Profile";
-import AnalyseView from "./views/AnalyseView";
+
 import EquipeView from "./views/EquipeView";
 import EnseignantsView from "./views/EnseignantsView";
 import ChatView from "./views/ChatView";
-import FloatingChatBubble from "./FloatingChatBubble"; // ✅ IMPORT
+import FloatingChatBubble from "./FloatingChatBubble";
 
 const DashboardAdmin = ({ onDeconnexion }) => {
     const [currentView, setCurrentView] = useState("dashboard");
@@ -24,25 +24,19 @@ const DashboardAdmin = ({ onDeconnexion }) => {
     const [adminData, setAdminData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // ✅ AJOUT: États pour contrôler FloatingChatBubble depuis l'extérieur
     const [chatAutoOpen, setChatAutoOpen] = useState(false);
     const [chatTargetReference, setChatTargetReference] = useState(null);
 
-    // ✅ MODE DÉMO : Charge SEULEMENT localStorage
     useEffect(() => {
         const loadProfile = () => {
             try {
-                console.log("🎭 [MODE DÉMO] Chargement depuis localStorage...");
                 const user = AuthService.getUser();
                 if (user && user.email) {
-                    console.log("✅ [MODE DÉMO] User chargé:", user.email);
                     setAdminData(user);
                 } else {
-                    console.warn("⚠️ [MODE DÉMO] Pas de user → déconnexion");
                     if (onDeconnexion) onDeconnexion();
                 }
             } catch (error) {
-                console.error("❌ [MODE DÉMO] Erreur:", error);
                 if (onDeconnexion) onDeconnexion();
             } finally {
                 setIsLoading(false);
@@ -55,22 +49,15 @@ const DashboardAdmin = ({ onDeconnexion }) => {
     const handleNavigateToNotifications = () => setCurrentView("notifications");
     const handleNavigateToSettings = () => setCurrentView("settings");
 
-    // ✅ FONCTION POUR OUVRIR LE CHAT EN PLEIN ÉCRAN DEPUIS LA BULLE FLOTTANTE
     const handleOpenFullChat = (chatId) => {
-        console.log("📱 Ouverture du chat en plein écran pour l'ID:", chatId);
         setCurrentView("chat");
-        // TODO: Lorsque le backend sera prêt, vous pourrez passer chatId à ChatView
-        // pour afficher directement la conversation sélectionnée
     };
 
-    // ✅ AJOUT: Fonction pour contacter depuis ReportsView (par référence)
     const handleContactByReference = (reference) => {
-        console.log("💬 Demande de contact pour la référence:", reference);
         setChatTargetReference(reference);
         setChatAutoOpen(true);
     };
 
-    // Fonction de rendu conditionnel des vues
     const renderContent = () => {
         switch (currentView) {
             case "dashboard":
@@ -79,8 +66,7 @@ const DashboardAdmin = ({ onDeconnexion }) => {
                 return <ReportsView onContactReference={handleContactByReference} />;
             case "chat":
                 return <ChatView />;
-            case "analyse":
-                return <AnalyseView />;
+
             case "indicateurs":
                 return <IndicateursView />;
             case "enseignants":
@@ -121,7 +107,6 @@ const DashboardAdmin = ({ onDeconnexion }) => {
 
     return (
         <div className="flex h-screen bg-gray-100 overflow-hidden">
-            {/* Sidebar */}
             <Sidebar
                 currentView={currentView}
                 onViewChange={setCurrentView}
@@ -130,7 +115,6 @@ const DashboardAdmin = ({ onDeconnexion }) => {
             />
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header */}
                 <Header
                     onNavigateToNotifications={handleNavigateToNotifications}
                     onDeconnexion={onDeconnexion}
@@ -140,7 +124,6 @@ const DashboardAdmin = ({ onDeconnexion }) => {
                     userRole="admin"
                 />
 
-                {/* Contenu principal */}
                 <main
                     className={`flex-1 overflow-y-auto p-6 bg-gray-50 ${
                         currentView === "chat" ? "pt-24 h-screen" : "mt-20"
@@ -150,7 +133,6 @@ const DashboardAdmin = ({ onDeconnexion }) => {
                 </main>
             </div>
 
-            {/* ✅ BULLE DE CHAT FLOTTANTE - visible partout sauf sur ChatView */}
             {currentView !== "chat" && (
                 <FloatingChatBubble
                     onOpenFullChat={handleOpenFullChat}

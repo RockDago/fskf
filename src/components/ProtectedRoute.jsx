@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { usePermissions } from "../hooks/usePermissions";
 
 const ProtectedRoute = ({ children, requiredPermissions = [], requiredRole = null, redirectTo = "/unauthorized" }) => {
-    const { loading, userRole, hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+    const { loading, userRole, hasPermission } = usePermissions();
 
     if (loading) {
         return (

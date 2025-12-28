@@ -76,7 +76,6 @@ class UserService {
      */
     static async login(email, password, rememberMe = false) {
         try {
-            console.log("[UserService] Login avec rememberMe:", rememberMe);
             this.clearAuth();
 
             const response = await API.post("/auth/login", {
@@ -94,8 +93,6 @@ class UserService {
             this.setAuthToken(token, rememberMe);
             this.setUserData(user);
 
-            console.log("[UserService] Login réussi:", user?.email);
-
             return {
                 success: true,
                 user,
@@ -110,7 +107,6 @@ class UserService {
                 };
             }
 
-            console.error("[UserService] Erreur login:", error);
             return this.handleError(error);
         }
     }
@@ -122,10 +118,9 @@ class UserService {
         try {
             await API.post("/auth/logout");
         } catch (error) {
-            console.warn("[UserService] Logout API error:", error);
+            // Ignore error
         } finally {
             this.clearAuth();
-            console.log("[UserService] Déconnexion effectuée");
         }
 
         return { success: true };
@@ -175,7 +170,6 @@ class UserService {
             this.setUserData(user);
             return user;
         } catch (error) {
-            console.error("[UserService] Erreur getCurrentUser:", error);
             return this.getUserData();
         }
     }
@@ -195,11 +189,9 @@ class UserService {
 
     static async getAllUsers() {
         try {
-            console.log("[UserService] getAllUsers appelé");
             const response = await API.get("/users");
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur getAllUsers:", error);
             return this.handleError(error);
         }
     }
@@ -276,11 +268,9 @@ class UserService {
                 password_confirmation: userData.passwordconfirmation,
             };
 
-            console.log("[UserService] createUser envoyé:", formattedData);
             const response = await API.post("/users", formattedData);
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur createUser:", error);
             return this.handleError(error);
         }
     }
@@ -290,33 +280,20 @@ class UserService {
      */
     static async createUserWithNotification(userData) {
         try {
-            console.log("[UserService] createUserWithNotification appelé avec données brutes:", userData);
-            console.log("[UserService] Propriétés de userData:", Object.keys(userData));
-            console.log("[UserService] Valeurs importantes:", {
-                first_name: userData.first_name,
-                last_name: userData.last_name,
-                role: userData.role,
-                username: userData.username,
-                email: userData.email,
-            });
-
             const firstName = userData.first_name || userData.firstname;
             const lastName = userData.last_name || userData.lastname;
 
             if (!firstName) {
-                console.error("[UserService] first_name/firstname manquant:", userData);
                 return { success: false, message: "Le prénom est requis" };
             }
 
             if (!lastName) {
-                console.error("[UserService] last_name/lastname manquant:", userData);
                 return { success: false, message: "Le nom est requis" };
             }
 
             let role = (userData.role || "agent").toString().toLowerCase().trim();
             const validRoles = ["admin", "agent", "investigateur"];
             if (!validRoles.includes(role)) {
-                console.warn("[UserService] Rôle non valide, utilisation par défaut:", role);
                 role = "agent";
             }
 
@@ -336,18 +313,9 @@ class UserService {
                 statut: userData.statut !== undefined ? userData.statut : true,
             };
 
-            console.log("[UserService] Données formatées pour createUserWithNotification:", formattedData);
-
             const response = await API.post("/admin/users/create-with-notification", formattedData);
-            console.log("[UserService] Réponse createUserWithNotification:", response.data);
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur createUserWithNotification:", error);
-
-            if (error.response?.status === 422) {
-                console.error("[UserService] Erreurs de validation:", error.response.data.errors);
-            }
-
             return this.handleError(error);
         }
     }
@@ -376,11 +344,9 @@ class UserService {
                 formattedData.password_confirmation = userData.passwordconfirmation;
             }
 
-            console.log("[UserService] updateUser envoyé:", id, formattedData);
             const response = await API.put(`/users/${id}`, formattedData);
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur updateUser:", error);
             return this.handleError(error);
         }
     }
@@ -390,11 +356,9 @@ class UserService {
      */
     static async deleteUser(id) {
         try {
-            console.log("[UserService] deleteUser:", id);
             const response = await API.delete(`/users/${id}`);
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur deleteUser:", error);
             return this.handleError(error);
         }
     }
@@ -404,11 +368,9 @@ class UserService {
      */
     static async toggleStatus(id) {
         try {
-            console.log("[UserService] toggleStatus:", id);
             const response = await API.post(`/users/${id}/toggle-status`);
             return response.data;
         } catch (error) {
-            console.error("[UserService] Erreur toggleStatus:", error);
             return this.handleError(error);
         }
     }
@@ -607,12 +569,6 @@ class UserService {
             .filter((name) => typeof UserService[name] === "function")
             .sort();
 
-        console.log("[UserService] Méthodes disponibles:", methods);
-        console.log(
-            "[UserService] createUserWithNotification exists:",
-            typeof UserService.createUserWithNotification
-        );
-
         return {
             methods,
             createUserWithNotificationExists: typeof UserService.createUserWithNotification === "function",
@@ -665,8 +621,6 @@ class UserService {
     // ==================== GESTION DES ERREURS ====================
 
     static handleError(error) {
-        console.error("[UserService] Gestion d'erreur", error);
-
         if (error.response) {
             const { status, data } = error.response;
             let message = data?.message || data?.error || "Une erreur est survenue";
@@ -716,7 +670,7 @@ class UserService {
     }
 }
 
-// ✅ CORRECTION IMPORTANTE : Interceptor pour ajouter le token sur CHAQUE requête
+// Interceptor pour ajouter le token sur CHAQUE requête
 API.interceptors.request.use(
     (config) => {
         const token = UserService.getAuthToken();
@@ -731,9 +685,5 @@ API.interceptors.request.use(
 
 // Initialize token on import
 UserService.initToken();
-
-// Debug: Log available methods
-console.log("[UserService] Initialisation...");
-UserService.debugMethods();
 
 export default UserService;

@@ -1,3 +1,5 @@
+/* eslint-disable no-use-before-define */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
 import API from "../config/axios";
 import AuthService from "../services/authService";
@@ -41,7 +43,7 @@ const TwoFactorVerify = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [checkTwoFactorStatus, navigate]);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable default-case */
+import { useState, useEffect } from "react";
 import UserService from "../../services/userService";
 import {
   Power,
@@ -18,11 +19,8 @@ import {
   CheckCircle,
   X,
   Save,
-  ArrowLeft,
   Eye,
   EyeOff,
-  UserCheck,
-  MailCheck,
 } from "lucide-react";
 
 // Constantes

@@ -85,7 +85,8 @@ export default function DossierTracker() {
   const [erreur, setErreur] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [, setSelectedFile] = useState(null);
 
   const cleanReference = (ref) => {
     return ref.replace(/\s+/g, "");
@@ -389,14 +390,8 @@ export default function DossierTracker() {
   };
 
   // Fonction pour sélectionner un fichier unique pour l'affichage en grand
-  const handleFileClick = (file) => {
-    setSelectedFile(file);
-  };
 
   // Fonction pour fermer l'affichage en grand
-  const closeFileView = () => {
-    setSelectedFile(null);
-  };
 
   if (error && page === "recherche") {
     return (
