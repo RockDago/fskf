@@ -10,14 +10,12 @@ import {
   Edit,
   Eye,
   X,
-  Save,
   PieChart,
   MoreVertical,
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
   User,
-  Calendar,
   Award,
   BookOpen,
   Building2,
@@ -42,7 +40,16 @@ const PROVINCES = [
   "Toliara",
 ];
 
-// Ligne 45-51 - Corriger le mapping CORPS_TO_TITRE
+// ✅ Définir les légendes des corps (tri alphabétique)
+const LEGENDE_CORPS = [
+  { code: "AES", libelle: "Assistant d'Enseignement Supérieur" },
+  { code: "MC", libelle: "Maître de Conférences" },
+  { code: "PE", libelle: "Professeur Emérite" },
+  { code: "PES", libelle: "Professeur d'Enseignement Supérieur" },
+  { code: "PT", libelle: "Professeur Titulaire" },
+];
+
+// Mapping corps vers titre
 const CORPS_TO_TITRE = {
   AES: "ASSITANT D'ENSEIGNEMENT SUPERIEUR",
   PE: "PROFESSEUR EMMERITE",
@@ -51,8 +58,11 @@ const CORPS_TO_TITRE = {
   MC: "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
 };
 
-// Ligne 54-60 - Corriger le tableau CATEGORIES et TRIER ALPHABÉTIQUEMENT
-const CATEGORIES = [
+// Corps enseignants (codes uniquement, tri alphabétique)
+const CORPS = LEGENDE_CORPS.map((item) => item.code);
+
+// Titres (catégories) triés alphabétiquement
+const TITRES = [
   "ASSITANT D'ENSEIGNEMENT SUPERIEUR",
   "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
   "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
@@ -60,17 +70,26 @@ const CATEGORIES = [
   "PROFESSEUR TITULAIRE",
 ].sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
 
-// Corps enseignants
-const CORPS = ["AES", "PE", "PT", "PES", "MC"];
-
-// ✅ Helper: normaliser texte (catégories, corps, etc.)
+// ✅ Helper: normaliser texte (titres, corps, etc.) — enlever accents et mettre en MAJ
 const normalizeText = (value) =>
   String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .replace(/\s+/g, " ")
     .toUpperCase();
 
-// ✅ Helper: normaliser la réponse API (évite response.data undefined)
+// ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
+const normalizeSearchText = (text) => {
+  if (!text) return "";
+  return String(text)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
+
+// ✅ Helper: normaliser la réponse API
 const extractArrayFromResponse = (response) => {
   if (!response) return [];
   if (Array.isArray(response)) return response;
@@ -271,15 +290,42 @@ const EnseignantsView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ États pour les filtres RECAP
+  const [recapFilter, setRecapFilter] = useState({
+    search: "",
+    faculte: "",
+    corps: "",
+    titre: "",
+  });
+
+  // ✅ États pour les filtres FACULTE
+  const [faculteFilter, setFaculteFilter] = useState({
+    search: "",
+    corps: "",
+    titre: "",
+  });
+
+  // ✅ État pour le tri RECAP
+  const [recapSort, setRecapSort] = useState({
+    field: "nom",
+    direction: "asc",
+  });
+
+  // ✅ État pour le tri FACULTE
+  const [faculteSort, setFaculteSort] = useState({
+    field: "nom",
+    direction: "asc",
+  });
+
   const [showModalUniv, setShowModalUniv] = useState(false);
   const [showModalFaculte, setShowModalFaculte] = useState(false);
   const [showModalTeacher, setShowModalTeacher] = useState(false);
   const [showModalEditUniv, setShowModalEditUniv] = useState(false);
-  const [showModalEditFaculte, setShowModalEditFaculte] = useState(false); // ⭐ NOUVEAU
+  const [showModalEditFaculte, setShowModalEditFaculte] = useState(false);
   const [showModalViewTeacher, setShowModalViewTeacher] = useState(false);
   const [showModalEditTeacher, setShowModalEditTeacher] = useState(false);
   const [editingUniv, setEditingUniv] = useState(null);
-  const [editingFaculte, setEditingFaculte] = useState(null); // ⭐ NOUVEAU
+  const [editingFaculte, setEditingFaculte] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
   const [confirmModal, setConfirmModal] = useState({
@@ -305,20 +351,20 @@ const EnseignantsView = () => {
     sexe: "M",
     im: "",
     date_naissance: "",
-    corps: "MC",
+    corps: "AES",
     diplome: "",
     specialite: "",
-    categorie: CATEGORIES[2],
+    titre: TITRES[0],
   });
   const [editTeacher, setEditTeacher] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const [searchTeacher, setSearchTeacher] = useState("");
 
-  // ✅ Normaliser les catégories
-  const NORMALIZED_CATEGORIES = useMemo(
-    () => CATEGORIES.map((c) => normalizeText(c)),
+  // ✅ Normaliser les titres
+  const NORMALIZED_TITRES = useMemo(
+    () => TITRES.map((c) => normalizeText(c)),
     []
   );
 
@@ -438,11 +484,9 @@ const EnseignantsView = () => {
         setAllTeachers([]);
         return;
       }
-      if (activeTab !== "RECAP") return;
 
       try {
         setLoading(true);
-
         const params = {
           universite_id: selectedUniv.id,
           per_page: 100000,
@@ -451,18 +495,25 @@ const EnseignantsView = () => {
         const response = await enseignantService.getAll(params);
         const list = extractArrayFromResponse(response);
 
-        const normalized = (Array.isArray(list) ? list : []).map((t) => ({
-          ...t,
-          nom: t?.nom ?? "",
-          im: t?.im ?? "",
-          sexe: normalizeText(t?.sexe),
-          corps: normalizeText(t?.corps),
-          categorie: normalizeText(t?.categorie),
-          diplome: t?.diplome ?? "",
-          specialite: t?.specialite ?? "",
-          date_naissance: t?.date_naissance ?? "",
-          etablissement_id: t?.etablissement_id ?? null,
-        }));
+        // Ajouter le nom de la faculté à chaque enseignant
+        const normalized = (Array.isArray(list) ? list : []).map((t) => {
+          const etab = etablissements.find(
+            (e) => String(e.id) === String(t?.etablissement_id)
+          );
+          return {
+            ...t,
+            nom: t?.nom ?? "",
+            im: t?.im ?? "",
+            sexe: normalizeText(t?.sexe),
+            corps: normalizeText(t?.corps),
+            titre: normalizeText(t?.categorie || t?.titre),
+            diplome: t?.diplome ?? "",
+            specialite: t?.specialite ?? "",
+            date_naissance: t?.date_naissance ?? "",
+            etablissement_id: t?.etablissement_id ?? null,
+            faculte_nom: etab?.nom ?? "Non assigné",
+          };
+        });
 
         setAllTeachers(normalized);
       } catch (err) {
@@ -475,7 +526,7 @@ const EnseignantsView = () => {
     };
 
     fetchAllTeachersForRecap();
-  }, [selectedUniv, activeTab]);
+  }, [selectedUniv, etablissements]);
 
   // ✅ Charger les enseignants par faculté
   useEffect(() => {
@@ -509,12 +560,8 @@ const EnseignantsView = () => {
           params.search = searchTeacher.trim();
         }
 
-        console.log("Chargement des enseignants avec params:", params);
-
         const response = await enseignantService.getAll(params);
         const list = extractArrayFromResponse(response);
-
-        console.log("Enseignants chargés:", list);
 
         // ✅ Normalisation des données
         const normalized = (Array.isArray(list) ? list : []).map((t) => ({
@@ -523,7 +570,7 @@ const EnseignantsView = () => {
           im: t?.im ?? "",
           sexe: normalizeText(t?.sexe),
           corps: normalizeText(t?.corps),
-          categorie: normalizeText(t?.categorie),
+          titre: normalizeText(t?.categorie || t?.titre),
           diplome: t?.diplome ?? "",
           specialite: t?.specialite ?? "",
           date_naissance: t?.date_naissance ?? "",
@@ -543,6 +590,180 @@ const EnseignantsView = () => {
     const timeoutId = setTimeout(fetchEnseignants, 300);
     return () => clearTimeout(timeoutId);
   }, [selectedUniv, activeTab, etablissements, searchTeacher]);
+
+  // --- FILTRES RECAP ---
+  const filteredRecapTeachers = useMemo(() => {
+    if (!Array.isArray(allTeachers)) return [];
+
+    return allTeachers.filter((teacher) => {
+      // ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
+      const searchQuery = normalizeSearchText(recapFilter.search || "");
+
+      let matchesSearch = true;
+      if (searchQuery) {
+        matchesSearch =
+          normalizeSearchText(teacher.nom || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.im || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.diplome || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.specialite || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.corps || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.titre || "").includes(searchQuery) ||
+          normalizeSearchText(teacher.faculte_nom || "").includes(searchQuery);
+      }
+
+      const matchesFaculte =
+        !recapFilter.faculte ||
+        (teacher.faculte_nom || "") === recapFilter.faculte;
+
+      const matchesCorps =
+        !recapFilter.corps || (teacher.corps || "") === recapFilter.corps;
+
+      const matchesTitre =
+        !recapFilter.titre ||
+        normalizeText(teacher.titre || "") === normalizeText(recapFilter.titre);
+
+      return matchesSearch && matchesFaculte && matchesCorps && matchesTitre;
+    });
+  }, [allTeachers, recapFilter]);
+
+  // ✅ Tri des enseignants RECAP
+  const sortedRecapTeachers = useMemo(() => {
+    const sorted = [...filteredRecapTeachers];
+
+    sorted.sort((a, b) => {
+      let aValue = a[recapSort.field] || "";
+      let bValue = b[recapSort.field] || "";
+
+      if (typeof aValue === "string") aValue = aValue.toLowerCase();
+      if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+      if (aValue < bValue) return recapSort.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return recapSort.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [filteredRecapTeachers, recapSort]);
+
+  // --- FILTRES FACULTE ---
+  const filteredFaculteTeachers = useMemo(() => {
+    if (!selectedUniv || activeTab === "RECAP") return [];
+    if (!Array.isArray(teachers)) return [];
+
+    return teachers.filter((t) => {
+      // ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
+      const searchQuery = normalizeSearchText(faculteFilter.search || "");
+
+      let matchesSearch = true;
+      if (searchQuery) {
+        matchesSearch =
+          normalizeSearchText(t?.nom ?? "").includes(searchQuery) ||
+          normalizeSearchText(t?.im ?? "").includes(searchQuery) ||
+          normalizeSearchText(t?.diplome ?? "").includes(searchQuery) ||
+          normalizeSearchText(t?.specialite ?? "").includes(searchQuery) ||
+          normalizeSearchText(t?.titre ?? "").includes(searchQuery) ||
+          normalizeSearchText(t?.corps ?? "").includes(searchQuery);
+      }
+
+      // Filtre Corps
+      const matchesCorps =
+        !faculteFilter.corps || (t?.corps ?? "") === faculteFilter.corps;
+
+      // Filtre Titre
+      const matchesTitre =
+        !faculteFilter.titre ||
+        normalizeText(t?.titre ?? "") === normalizeText(faculteFilter.titre);
+
+      return matchesSearch && matchesCorps && matchesTitre;
+    });
+  }, [teachers, selectedUniv, activeTab, faculteFilter]);
+
+  // ✅ Tri des enseignants FACULTE
+  const sortedFaculteTeachers = useMemo(() => {
+    const sorted = [...filteredFaculteTeachers];
+
+    sorted.sort((a, b) => {
+      let aValue = a[faculteSort.field] || "";
+      let bValue = b[faculteSort.field] || "";
+
+      if (typeof aValue === "string") aValue = aValue.toLowerCase();
+      if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+      if (aValue < bValue) return faculteSort.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return faculteSort.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [filteredFaculteTeachers, faculteSort]);
+
+  // ✅ Pagination RECAP
+  const recapCurrentPage = useMemo(
+    () =>
+      Math.max(
+        1,
+        Math.min(
+          currentPage,
+          Math.ceil(sortedRecapTeachers.length / itemsPerPage)
+        )
+      ),
+    [currentPage, sortedRecapTeachers.length, itemsPerPage]
+  );
+  const recapIndexStart = (recapCurrentPage - 1) * itemsPerPage;
+  const recapIndexEnd = recapIndexStart + itemsPerPage;
+  const paginatedRecapTeachers = sortedRecapTeachers.slice(
+    recapIndexStart,
+    recapIndexEnd
+  );
+  const recapTotalPages = Math.ceil(sortedRecapTeachers.length / itemsPerPage);
+
+  // ✅ Pagination FACULTE
+  const faculteCurrentPage = useMemo(
+    () =>
+      Math.max(
+        1,
+        Math.min(
+          currentPage,
+          Math.ceil(sortedFaculteTeachers.length / itemsPerPage)
+        )
+      ),
+    [currentPage, sortedFaculteTeachers.length, itemsPerPage]
+  );
+  const faculteIndexStart = (faculteCurrentPage - 1) * itemsPerPage;
+  const faculteIndexEnd = faculteIndexStart + itemsPerPage;
+  const paginatedFaculteTeachers = sortedFaculteTeachers.slice(
+    faculteIndexStart,
+    faculteIndexEnd
+  );
+  const faculteTotalPages = Math.ceil(
+    sortedFaculteTeachers.length / itemsPerPage
+  );
+
+  // ✅ Calcul des statistiques RECAP
+  const recapData = useMemo(() => {
+    if (!selectedUniv) return null;
+
+    const source = Array.isArray(allTeachers) ? allTeachers : [];
+    const stats = {};
+
+    etablissements.forEach((etab) => {
+      const enseignantsEtab = source.filter(
+        (t) => String(t?.etablissement_id) === String(etab.id)
+      );
+
+      stats[etab.nom] = {
+        AES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "AES").length,
+        MC: enseignantsEtab.filter((t) => (t?.corps ?? "") === "MC").length,
+        PES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "PES").length,
+        PT: enseignantsEtab.filter((t) => (t?.corps ?? "") === "PT").length,
+        total: enseignantsEtab.length,
+        F: enseignantsEtab.filter((t) => (t?.sexe ?? "") === "F").length,
+        M: enseignantsEtab.filter((t) => (t?.sexe ?? "") === "M").length,
+      };
+    });
+
+    return stats;
+  }, [selectedUniv, etablissements, allTeachers]);
 
   // --- ACTIONS UNIVERSITÉ ---
   const handleAddUniv = async () => {
@@ -634,7 +855,6 @@ const EnseignantsView = () => {
     }
   };
 
-  // ⭐ NOUVELLE FONCTION: Modifier une faculté
   const handleEditFaculte = (fac) => {
     const etablissement = etablissements.find((e) => e?.nom === fac);
     if (!etablissement) return;
@@ -644,7 +864,6 @@ const EnseignantsView = () => {
     setShowModalEditFaculte(true);
   };
 
-  // ⭐ NOUVELLE FONCTION: Mettre à jour une faculté
   const handleUpdateFaculte = async () => {
     if (!newFaculte || !editingFaculte) {
       showToast("Veuillez saisir le nom de la faculté", "error");
@@ -723,17 +942,12 @@ const EnseignantsView = () => {
         corps: newTeacher.corps,
         diplome: newTeacher.diplome,
         specialite: newTeacher.specialite,
-        categorie: newTeacher.categorie,
+        categorie: newTeacher.titre,
         universite_id: selectedUniv.id,
         etablissement_id: etablissement.id,
       };
 
-      console.log("📤 Données envoyées au backend:", teacherData);
-
       const created = await enseignantService.create(teacherData);
-
-      console.log("✅ Réponse backend SUCCESS:", created);
-
       const createdObj = created?.data ?? created;
 
       setTeachers((prev) => [
@@ -744,9 +958,7 @@ const EnseignantsView = () => {
           im: createdObj?.im ?? teacherData.im ?? "",
           sexe: normalizeText(createdObj?.sexe ?? teacherData.sexe),
           corps: normalizeText(createdObj?.corps ?? teacherData.corps),
-          categorie: normalizeText(
-            createdObj?.categorie ?? teacherData.categorie
-          ),
+          titre: normalizeText(createdObj?.categorie ?? teacherData.categorie),
           diplome: createdObj?.diplome ?? teacherData.diplome ?? "",
           specialite: createdObj?.specialite ?? teacherData.specialite ?? "",
           date_naissance:
@@ -761,10 +973,10 @@ const EnseignantsView = () => {
         sexe: "M",
         im: "",
         date_naissance: "",
-        corps: "MC",
+        corps: "AES",
         diplome: "",
         specialite: "",
-        categorie: CATEGORIES[2],
+        titre: TITRES[0],
       });
 
       showToast("Enseignant ajouté avec succès", "success");
@@ -844,8 +1056,8 @@ const EnseignantsView = () => {
                 diplome: updatedObj?.diplome ?? teacherData.diplome ?? "",
                 specialite:
                   updatedObj?.specialite ?? teacherData.specialite ?? "",
-                categorie: normalizeText(
-                  updatedObj?.categorie ?? teacherData.categorie
+                titre: normalizeText(
+                  updatedObj?.categorie ?? teacherData.titre
                 ),
                 corps: normalizeText(updatedObj?.corps ?? teacherData.corps),
                 sexe: normalizeText(updatedObj?.sexe ?? teacherData.sexe),
@@ -890,104 +1102,58 @@ const EnseignantsView = () => {
     });
   };
 
-  // --- CALCULS ---
+  // ✅ Groupe les enseignants par titre
+  const groupTeachersByTitre = (teacherList) => {
+    const groups = {};
+
+    teacherList.forEach((teacher) => {
+      const titre = teacher?.titre || "Sans titre";
+      if (!groups[titre]) {
+        groups[titre] = [];
+      }
+      groups[titre].push(teacher);
+    });
+
+    return groups;
+  };
+
+  // ✅ Fonction pour trier les colonnes RECAP
+  const handleSortRecap = (field) => {
+    setRecapSort((prev) => ({
+      field,
+      direction:
+        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  // ✅ Fonction pour trier les colonnes FACULTE
+  const handleSortFaculte = (field) => {
+    setFaculteSort((prev) => ({
+      field,
+      direction:
+        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  // ✅ Reset page quand filtre change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, itemsPerPage, recapFilter, faculteFilter, searchTeacher]);
+
   const currentFacultes = useMemo(
     () => etablissements.map((e) => e.nom),
     [etablissements]
   );
 
-  // ✅ Filtrage des enseignants avec protection
-  const filteredTeachers = useMemo(() => {
-    if (!selectedUniv || activeTab === "RECAP") return [];
-    if (!Array.isArray(teachers)) return [];
+  // ✅ Grouper les enseignants par titre pour FACULTE
+  const groupedFaculteTeachers = useMemo(() => {
+    return groupTeachersByTitre(paginatedFaculteTeachers);
+  }, [paginatedFaculteTeachers]);
 
-    const q = (searchTeacher || "").toLowerCase();
-
-    return teachers.filter((t) => {
-      const nom = (t?.nom ?? "").toLowerCase();
-      const im = String(t?.im ?? "");
-      return nom.includes(q) || im.includes(searchTeacher || "");
-    });
-  }, [teachers, selectedUniv, activeTab, searchTeacher]);
-
-  // ✅ Reset page quand filtre change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTeacher, activeTab, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const paginatedTeachers = filteredTeachers.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-
-  // ✅ Corriger currentPage si dépasse
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
-
-  // ✅ Vérifier si on a des enseignants à afficher dans les catégories
-  const hasAnyTeachersInCategories = useMemo(() => {
-    return NORMALIZED_CATEGORIES.some((cat) =>
-      paginatedTeachers.some((t) => (t?.categorie ?? "") === cat)
-    );
-  }, [paginatedTeachers, NORMALIZED_CATEGORIES]);
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible + 2) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-
-      let startPage = Math.max(2, currentPage - 2);
-      let endPage = Math.min(totalPages - 1, currentPage + 2);
-
-      if (currentPage <= 3) endPage = maxVisible;
-      if (currentPage >= totalPages - 2)
-        startPage = totalPages - maxVisible + 1;
-
-      if (startPage > 2) pages.push("...");
-
-      for (let i = startPage; i <= endPage; i++) pages.push(i);
-
-      if (endPage < totalPages - 1) pages.push("...");
-
-      pages.push(totalPages);
-    }
-    return pages;
-  };
-
-  // ✅ Calcul des statistiques RECAP avec allTeachers
-  const recapData = useMemo(() => {
-    if (!selectedUniv) return null;
-
-    const source = Array.isArray(allTeachers) ? allTeachers : [];
-    const stats = {};
-
-    etablissements.forEach((etab) => {
-      const enseignantsEtab = source.filter(
-        (t) => t?.etablissement_id === etab.id
-      );
-
-      stats[etab.nom] = {
-        AES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "AES").length,
-        MC: enseignantsEtab.filter((t) => (t?.corps ?? "") === "MC").length,
-        PES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "PES").length,
-        PT: enseignantsEtab.filter((t) => (t?.corps ?? "") === "PT").length,
-        total: enseignantsEtab.length,
-        F: enseignantsEtab.filter((t) => (t?.sexe ?? "") === "F").length,
-        M: enseignantsEtab.filter((t) => (t?.sexe ?? "") === "M").length,
-      };
-    });
-
-    return stats;
-  }, [selectedUniv, etablissements, allTeachers]);
+  // ✅ Grouper les enseignants par titre pour RECAP
+  const groupedRecapTeachers = useMemo(() => {
+    return groupTeachersByTitre(paginatedRecapTeachers);
+  }, [paginatedRecapTeachers]);
 
   // ✅ Affichage du loader initial
   if (loading && viewState === "selection" && universites.length === 0) {
@@ -1142,7 +1308,7 @@ const EnseignantsView = () => {
                     <MapPin className="h-5 w-5 text-gray-400" />
                   </div>
                   <select
-                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none appearance-none bg-white"
                     value={newUniv.province}
                     onChange={(e) =>
                       setNewUniv({ ...newUniv, province: e.target.value })
@@ -1168,12 +1334,12 @@ const EnseignantsView = () => {
                   </div>
                   <input
                     type="text"
-                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase"
+                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     value={newUniv.code}
                     onChange={(e) =>
                       setNewUniv({
                         ...newUniv,
-                        code: e.target.value.toUpperCase(),
+                        code: e.target.value,
                       })
                     }
                     placeholder="Ex: UM"
@@ -1239,7 +1405,7 @@ const EnseignantsView = () => {
                     <MapPin className="h-5 w-5 text-gray-400" />
                   </div>
                   <select
-                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none appearance-none bg-white"
                     value={newUniv.province}
                     onChange={(e) =>
                       setNewUniv({ ...newUniv, province: e.target.value })
@@ -1265,12 +1431,12 @@ const EnseignantsView = () => {
                   </div>
                   <input
                     type="text"
-                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase"
+                    className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     value={newUniv.code}
                     onChange={(e) =>
                       setNewUniv({
                         ...newUniv,
-                        code: e.target.value.toUpperCase(),
+                        code: e.target.value,
                       })
                     }
                     placeholder="Ex: UM"
@@ -1407,7 +1573,6 @@ const EnseignantsView = () => {
                 {fac}
               </button>
 
-              {/* ⭐ Boutons de modification et suppression */}
               <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => {
@@ -1435,249 +1600,382 @@ const EnseignantsView = () => {
       {/* Contenu */}
       <div className="flex-1 overflow-auto bg-gray-50 p-6">
         {/* VUE RECAP */}
-        {activeTab === "RECAP" && recapData && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* En-tête du tableau RECAP */}
-            <div className="bg-white border border-gray-300 rounded-t-xl px-4 py-4 text-center text-sm font-bold">
-              <div>ETAT RECAPITULATIF DES ENSEIGNANTS CHERCHEURS</div>
-              <div className="mt-1">{selectedUniv.nom.toUpperCase()}</div>
-              <div className="mt-1 text-gray-600">ANNEE 2025</div>
-            </div>
-
-            {/* Tableau RECAP */}
-            <div className="border border-gray-300 overflow-x-auto bg-white">
-              <table className="w-full text-[12px] border-collapse">
-                <thead>
-                  <tr>
-                    <th
-                      rowSpan={2}
-                      className="border border-gray-400 bg-gray-200 px-3 py-2 text-left align-middle"
-                    ></th>
-                    <th
-                      colSpan={4}
-                      className="border border-gray-400 bg-gray-200 px-3 py-2 text-center font-bold"
-                    >
-                      CORPS
-                    </th>
-                    <th
-                      rowSpan={2}
-                      className="border border-gray-400 bg-gray-200 px-3 py-2 text-center font-bold"
-                    >
-                      TOTAL
-                    </th>
-                    <th
-                      colSpan={2}
-                      className="border border-gray-400 bg-gray-200 px-3 py-2 text-center font-bold"
-                    >
-                      GENRE
-                    </th>
-                  </tr>
-                  <tr>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      AES
-                    </th>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      MC
-                    </th>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      PES
-                    </th>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      PT
-                    </th>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      Fem.
-                    </th>
-                    <th className="border border-gray-400 bg-gray-200 px-3 py-1 text-center font-semibold">
-                      Masc.
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(recapData).map((fac) => {
-                    const d = recapData[fac];
-                    return (
-                      <tr key={fac}>
-                        <td className="border border-gray-300 px-3 py-1 text-left font-semibold">
-                          {fac}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.AES}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.MC}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.PES}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.PT}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center font-semibold">
-                          {d.total}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.F}
-                        </td>
-                        <td className="border border-gray-300 px-3 py-1 text-center">
-                          {d.M}
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {/* Ligne TOTAL */}
-                  <tr className="font-bold bg-gray-100">
-                    <td className="border border-gray-300 px-3 py-1 text-left">
-                      TOTAL
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.AES,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.MC,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.PES,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.PT,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.total,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.F,
-                        0
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-1 text-center">
-                      {Object.values(recapData).reduce(
-                        (sum, d) => sum + d.M,
-                        0
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* VUE LISTE ENSEIGNANTS */}
-        {activeTab !== "RECAP" && (
-          <div className="space-y-4">
-            {/* Barre de recherche et bouton d'ajout */}
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-              <div className="relative">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="Rechercher..."
-                  className="pl-10 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-64"
-                  value={searchTeacher}
-                  onChange={(e) => setSearchTeacher(e.target.value)}
-                />
+        {activeTab === "RECAP" && (
+          <div className="space-y-8">
+            {/* 1. Tableau Récapitulatif - Version compacte */}
+            <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+              <div className="px-4 py-3 text-center bg-blue-50 border-b">
+                <div className="text-sm font-bold text-blue-800">
+                  TABLEAU RÉCAPITULATIF DES ENSEIGNANTS PAR FACULTÉ
+                </div>
+                <div className="mt-1 text-xs font-semibold text-gray-700">
+                  {selectedUniv.nom.toUpperCase()}
+                </div>
+                <div className="mt-1 text-xs text-gray-600">ANNÉE 2025</div>
               </div>
 
-              <button
-                onClick={() => setShowModalTeacher(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
-              >
-                <Plus size={18} /> Ajouter Enseignant
-              </button>
+              {/* Tableau Récapitulatif compact */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] border-collapse">
+                  <thead>
+                    <tr>
+                      <th
+                        rowSpan={2}
+                        className="border border-gray-400 bg-gray-200 px-2 py-1.5 text-left align-middle font-bold text-gray-800 min-w-[150px]"
+                      >
+                        FACULTÉS / ÉTABLISSEMENTS
+                      </th>
+                      <th
+                        colSpan={4}
+                        className="border border-gray-400 bg-gray-200 px-2 py-1.5 text-center font-bold text-gray-800"
+                      >
+                        CORPS D&apos;ENSEIGNANTS
+                      </th>
+                      <th
+                        rowSpan={2}
+                        className="border border-gray-400 bg-gray-200 px-2 py-1.5 text-center font-bold text-gray-800"
+                      >
+                        TOTAL
+                      </th>
+                      <th
+                        colSpan={2}
+                        className="border border-gray-400 bg-gray-200 px-2 py-1.5 text-center font-bold text-gray-800"
+                      >
+                        GENRE
+                      </th>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        AES
+                      </th>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        MC
+                      </th>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        PES
+                      </th>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        PT
+                      </th>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        Fem.
+                      </th>
+                      <th className="border border-gray-400 bg-gray-200 px-1 py-0.5 text-center font-semibold text-gray-700">
+                        Masc.
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(recapData || {}).map((fac) => {
+                      const d = recapData[fac];
+                      return (
+                        <tr key={fac} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-2 py-1.5 text-left font-semibold text-gray-800">
+                            {fac}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.AES}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.MC}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.PES}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.PT}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center font-semibold text-gray-800">
+                            {d.total}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.F}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-1 text-center text-gray-700">
+                            {d.M}
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {/* Ligne TOTAL */}
+                    <tr className="font-bold bg-blue-50">
+                      <td className="border border-gray-300 px-2 py-1.5 text-left text-blue-800">
+                        TOTAL GÉNÉRAL
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.AES,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.MC,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.PES,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.PT,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.total,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.F,
+                          0
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-1 text-center text-blue-800">
+                        {Object.values(recapData || {}).reduce(
+                          (sum, d) => sum + d.M,
+                          0
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {/* Tableau des enseignants */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {loading ? (
-                <div className="py-20 flex justify-center">
-                  <Loader2 className="animate-spin text-blue-600" size={48} />
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse min-w-[1100px]">
-                    <thead>
-                      <tr className="bg-gray-50 text-gray-600 border-b border-gray-200">
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-12 text-center font-medium text-[10px] uppercase tracking-wide">
-                          N°
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Nom
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-16 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Sexe
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-24 text-center font-medium text-[10px] uppercase tracking-wide">
-                          IM
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-32 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Date de Naissance
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-20 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Corps
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-24 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Faculté
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 w-32 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Diplômes
-                        </th>
-                        <th className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide">
-                          Spécialités
-                        </th>
-                        <th className="px-3 py-2.5 text-center w-28 font-medium text-[10px] uppercase tracking-wide">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {NORMALIZED_CATEGORIES.map((cat) => {
-                        const teachersInCat = paginatedTeachers.filter(
-                          (t) => (t?.categorie ?? "") === cat
-                        );
+            {/* 3. Liste détaillée des enseignants - Tableau RECAP */}
+            <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+              <div className="px-6 py-4 bg-blue-50 border-b">
+                <h3 className="text-sm font-bold text-blue-800 uppercase">
+                  LISTE DÉTAILLÉE DE TOUS LES ENSEIGNANTS
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  Filtrez et triez la liste complète des enseignants de
+                  l&apos;université
+                </p>
+              </div>
 
-                        if (teachersInCat.length === 0) return null;
+              {/* Barre de filtres */}
+              <div className="p-4 border-b bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Recherche par nom/IM
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        placeholder="Nom, IM, diplôme, spécialité..."
+                        value={recapFilter.search}
+                        onChange={(e) =>
+                          setRecapFilter((prev) => ({
+                            ...prev,
+                            search: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Faculté
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                      value={recapFilter.faculte}
+                      onChange={(e) =>
+                        setRecapFilter((prev) => ({
+                          ...prev,
+                          faculte: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Toutes les facultés</option>
+                      {currentFacultes.map((fac) => (
+                        <option key={fac} value={fac}>
+                          {fac}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Corps
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                      value={recapFilter.corps}
+                      onChange={(e) =>
+                        setRecapFilter((prev) => ({
+                          ...prev,
+                          corps: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Tous les corps</option>
+                      <option value="AES">AES</option>
+                      <option value="MC">MC</option>
+                      <option value="PE">PE</option>
+                      <option value="PES">PES</option>
+                      <option value="PT">PT</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Titre
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                      value={recapFilter.titre}
+                      onChange={(e) =>
+                        setRecapFilter((prev) => ({
+                          ...prev,
+                          titre: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Tous les titres</option>
+                      <option value="ASSITANT D'ENSEIGNEMENT SUPERIEUR">
+                        ASSITANT D'ENSEIGNEMENT SUPERIEUR
+                      </option>
+                      <option value="MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR">
+                        MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR
+                      </option>
+                      <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
+                        PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
+                      </option>
+                      <option value="PROFESSEUR EMMERITE">
+                        PROFESSEUR EMMERITE
+                      </option>
+                      <option value="PROFESSEUR TITULAIRE">
+                        PROFESSEUR TITULAIRE
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Bouton reset filtres */}
+                {(recapFilter.search ||
+                  recapFilter.faculte ||
+                  recapFilter.corps ||
+                  recapFilter.titre) && (
+                  <div>
+                    <button
+                      onClick={() =>
+                        setRecapFilter({
+                          search: "",
+                          faculte: "",
+                          corps: "",
+                          titre: "",
+                        })
+                      }
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                    >
+                      <X size={14} /> Réinitialiser les filtres
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Tableau des enseignants RECAP */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse min-w-[1100px]">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 border-b border-gray-200">
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-12 text-center font-medium text-[10px] uppercase tracking-wide">
+                        N°
+                      </th>
+                      <th
+                        className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSortRecap("nom")}
+                      >
+                        <div className="flex items-center justify-center gap-1">
+                          Nom
+                          {recapSort.field === "nom" && (
+                            <span className="text-xs">
+                              {recapSort.direction === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-16 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Sexe
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-24 text-center font-medium text-[10px] uppercase tracking-wide">
+                        IM
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-20 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Corps
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Faculté
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Titre
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-32 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Diplômes
+                      </th>
+                      <th className="px-3 py-2.5 border-r border-gray-200 w-40 text-center font-medium text-[10px] uppercase tracking-wide">
+                        Spécialités
+                      </th>
+                      <th className="px-3 py-2.5 text-center w-28 font-medium text-[10px] uppercase tracking-wide">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {loading ? (
+                      <tr>
+                        <td colSpan={10} className="px-4 py-8 text-center">
+                          <Loader2
+                            className="animate-spin text-blue-600 mx-auto"
+                            size={24}
+                          />
+                          <p className="text-sm text-gray-500 mt-2">
+                            Chargement des données...
+                          </p>
+                        </td>
+                      </tr>
+                    ) : Object.keys(groupedRecapTeachers).length > 0 ? (
+                      Object.keys(groupedRecapTeachers).map((titre) => {
+                        const teachersInTitre = groupedRecapTeachers[titre];
+
+                        if (teachersInTitre.length === 0) return null;
 
                         return (
-                          <React.Fragment key={cat}>
-                            {/* En-tête de catégorie */}
+                          <React.Fragment key={titre}>
+                            {/* En-tête de titre */}
                             <tr className="bg-blue-600">
                               <td
                                 colSpan={10}
                                 className="px-4 py-2 text-[11px] font-bold text-white uppercase text-center tracking-wide"
                               >
-                                {cat}
+                                {titre}
                               </td>
                             </tr>
 
                             {/* Liste des enseignants */}
-                            {teachersInCat.map((t, idx) => (
+                            {teachersInTitre.map((t, idx) => (
                               <tr
                                 key={t.id}
                                 className="hover:bg-gray-50 transition-colors"
                               >
                                 <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
-                                  {idx + 1}
+                                  {recapIndexStart + idx + 1}
                                 </td>
                                 <td className="px-3 py-3 text-center border-r border-gray-100 font-medium text-[13px] text-gray-800">
                                   {t.nom}
@@ -1688,19 +1986,19 @@ const EnseignantsView = () => {
                                 <td className="px-3 py-3 text-center border-r border-gray-100 font-mono text-[12px] text-gray-600">
                                   {t.im}
                                 </td>
-                                <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
-                                  {convertFromISODate(t.date_naissance)}
-                                </td>
                                 <td className="px-3 py-3 text-center border-r border-gray-100 font-semibold text-[13px] text-gray-800">
                                   {t.corps}
                                 </td>
                                 <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
-                                  {activeTab}
+                                  {t.faculte_nom}
                                 </td>
-                                <td className="px-3 py-3 text-center border-r border-gray-100 text-[12px] uppercase text-gray-600">
+                                <td className="px-3 py-3 text-center border-r border-gray-100 font-semibold text-[13px] text-blue-700">
+                                  {t.titre}
+                                </td>
+                                <td className="px-3 py-3 text-center border-r border-gray-100 text-[12px] text-gray-600">
                                   {t.diplome}
                                 </td>
-                                <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
+                                <td className="px-3 py-3 text-center border-r border-gray-100 text-[12px] text-gray-600">
                                   {t.specialite}
                                 </td>
                                 <td className="px-2 py-3 text-center">
@@ -1732,17 +2030,359 @@ const EnseignantsView = () => {
                             ))}
                           </React.Fragment>
                         );
-                      })}
+                      })
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={10}
+                          className="p-8 text-center text-gray-500 text-sm"
+                        >
+                          Aucun enseignant trouvé avec les filtres sélectionnés.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
 
-                      {!hasAnyTeachersInCategories && (
+                {/* Pagination RECAP */}
+                {sortedRecapTeachers.length > 0 && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span>Éléments par page:</span>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                          setItemsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        className="px-2 py-1 border rounded-md text-xs bg-white"
+                      >
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={150}>150</option>
+                        <option value={200}>200</option>
+                      </select>
+                      <span className="text-gray-500">
+                        {recapIndexStart + 1}-
+                        {Math.min(recapIndexEnd, sortedRecapTeachers.length)}{" "}
+                        sur {sortedRecapTeachers.length}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={recapCurrentPage === 1}
+                        className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {Array.from(
+                        { length: Math.min(5, recapTotalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (recapTotalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (recapCurrentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (recapCurrentPage >= recapTotalPages - 2) {
+                            pageNum = recapTotalPages - 4 + i;
+                          } else {
+                            pageNum = recapCurrentPage - 2 + i;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-1 text-sm border rounded-md ${
+                                recapCurrentPage === pageNum
+                                  ? "bg-blue-600 text-white border-blue-600"
+                                  : "bg-white hover:bg-gray-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
+
+                      <button
+                        onClick={() =>
+                          setCurrentPage((p) =>
+                            Math.min(recapTotalPages, p + 1)
+                          )
+                        }
+                        disabled={recapCurrentPage === recapTotalPages}
+                        className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VUE LISTE ENSEIGNANTS PAR FACULTÉ */}
+        {activeTab !== "RECAP" && (
+          <div className="space-y-4">
+            {/* Barre de recherche et bouton d'ajout */}
+            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Recherche par nom/IM
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      placeholder="Nom, IM, diplôme, spécialité..."
+                      value={faculteFilter.search}
+                      onChange={(e) =>
+                        setFaculteFilter((prev) => ({
+                          ...prev,
+                          search: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Corps
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                    value={faculteFilter.corps}
+                    onChange={(e) =>
+                      setFaculteFilter((prev) => ({
+                        ...prev,
+                        corps: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Tous les corps</option>
+                    <option value="AES">AES</option>
+                    <option value="MC">MC</option>
+                    <option value="PE">PE</option>
+                    <option value="PES">PES</option>
+                    <option value="PT">PT</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Titre
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                    value={faculteFilter.titre}
+                    onChange={(e) =>
+                      setFaculteFilter((prev) => ({
+                        ...prev,
+                        titre: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Tous les titres</option>
+                    <option value="ASSITANT D'ENSEIGNEMENT SUPERIEUR">
+                      ASSITANT D'ENSEIGNEMENT SUPERIEUR
+                    </option>
+                    <option value="MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR">
+                      MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR
+                    </option>
+                    <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
+                      PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
+                    </option>
+                    <option value="PROFESSEUR EMMERITE">
+                      PROFESSEUR EMMERITE
+                    </option>
+                    <option value="PROFESSEUR TITULAIRE">
+                      PROFESSEUR TITULAIRE
+                    </option>
+                  </select>
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    onClick={() => setShowModalTeacher(true)}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors w-full justify-center"
+                  >
+                    <Plus size={18} /> Ajouter Enseignant
+                  </button>
+                </div>
+              </div>
+
+              {/* Bouton reset filtres */}
+              {(faculteFilter.search ||
+                faculteFilter.corps ||
+                faculteFilter.titre) && (
+                <div>
+                  <button
+                    onClick={() =>
+                      setFaculteFilter({
+                        search: "",
+                        corps: "",
+                        titre: "",
+                      })
+                    }
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                  >
+                    <X size={14} /> Réinitialiser les filtres
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Tableau des enseignants */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              {loading ? (
+                <div className="py-20 flex justify-center">
+                  <Loader2 className="animate-spin text-blue-600" size={48} />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse min-w-[1100px]">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-600 border-b border-gray-200">
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-12 text-center font-medium text-[10px] uppercase tracking-wide">
+                          N°
+                        </th>
+                        <th
+                          className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSortFaculte("nom")}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            Nom
+                            {faculteSort.field === "nom" && (
+                              <span className="text-xs">
+                                {faculteSort.direction === "asc" ? "↑" : "↓"}
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-16 text-center font-medium text-[10px] uppercase tracking-wide">
+                          Sexe
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-24 text-center font-medium text-[10px] uppercase tracking-wide">
+                          IM
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-20 text-center font-medium text-[10px] uppercase tracking-wide">
+                          Corps
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-32 text-center font-medium text-[10px] uppercase tracking-wide">
+                          Titre
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 w-32 text-center font-medium text-[10px] uppercase tracking-wide">
+                          Diplômes
+                        </th>
+                        <th className="px-3 py-2.5 border-r border-gray-200 text-center font-medium text-[10px] uppercase tracking-wide">
+                          Spécialités
+                        </th>
+                        <th className="px-3 py-2.5 text-center w-28 font-medium text-[10px] uppercase tracking-wide">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {Object.keys(groupedFaculteTeachers).length === 0 ? (
                         <tr>
                           <td
-                            colSpan={10}
+                            colSpan={9}
                             className="p-8 text-center text-gray-500 text-sm"
                           >
-                            Aucun enseignant trouvé.
+                            {faculteFilter.search ||
+                            faculteFilter.corps ||
+                            faculteFilter.titre
+                              ? "Aucun enseignant trouvé avec les filtres sélectionnés."
+                              : "Aucun enseignant dans cette faculté."}
                           </td>
                         </tr>
+                      ) : (
+                        Object.keys(groupedFaculteTeachers).map((titre) => {
+                          const teachersInTitre = groupedFaculteTeachers[titre];
+
+                          return (
+                            <React.Fragment key={titre}>
+                              {/* En-tête de titre */}
+                              <tr className="bg-blue-600">
+                                <td
+                                  colSpan={9}
+                                  className="px-4 py-2 text-[11px] font-bold text-white uppercase text-center tracking-wide"
+                                >
+                                  {titre}
+                                </td>
+                              </tr>
+
+                              {/* Liste des enseignants */}
+                              {teachersInTitre.map((t, idx) => (
+                                <tr
+                                  key={t.id}
+                                  className="hover:bg-gray-50 transition-colors"
+                                >
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
+                                    {faculteIndexStart + idx + 1}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 font-medium text-[13px] text-gray-800">
+                                    {t.nom}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
+                                    {t.sexe}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 font-mono text-[12px] text-gray-600">
+                                    {t.im}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 font-semibold text-[13px] text-gray-800">
+                                    {t.corps}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 font-semibold text-[13px] text-blue-700">
+                                    {t.titre}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 text-[12px] text-gray-600">
+                                    {t.diplome}
+                                  </td>
+                                  <td className="px-3 py-3 text-center border-r border-gray-100 text-[13px] text-gray-700">
+                                    {t.specialite}
+                                  </td>
+                                  <td className="px-2 py-3 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <button
+                                        onClick={() => handleViewTeacher(t)}
+                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                        title="Afficher"
+                                      >
+                                        <Eye size={15} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleEditTeacherOpen(t)}
+                                        className="p-1.5 text-orange-500 hover:bg-orange-50 rounded transition-colors"
+                                        title="Modifier"
+                                      >
+                                        <Edit size={15} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteTeacher(t)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                        title="Supprimer"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -1750,7 +2390,7 @@ const EnseignantsView = () => {
               )}
 
               {/* PAGINATION */}
-              {filteredTeachers.length > 0 && (
+              {sortedFaculteTeachers.length > 0 && (
                 <div className="flex items-center justify-between px-2 py-2 border-t bg-gray-50">
                   <div className="flex items-center gap-2 text-xs">
                     <span>Éléments par page:</span>
@@ -1760,58 +2400,94 @@ const EnseignantsView = () => {
                         setItemsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="px-2 py-1 border rounded-md text-xs"
+                      className="px-2 py-1 border rounded-md text-xs bg-white"
                     >
-                      <option value={10}>10</option>
-                      <option value={30}>30</option>
                       <option value={50}>50</option>
                       <option value={100}>100</option>
+                      <option value={150}>150</option>
+                      <option value={200}>200</option>
                     </select>
                     <span className="text-gray-500">
-                      {indexOfFirstItem + 1}-
-                      {Math.min(indexOfLastItem, filteredTeachers.length)} sur{" "}
-                      {filteredTeachers.length}
+                      {faculteIndexStart + 1}-
+                      {Math.min(faculteIndexEnd, sortedFaculteTeachers.length)}{" "}
+                      sur {sortedFaculteTeachers.length}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="p-1 border rounded-md disabled:opacity-50"
+                      disabled={faculteCurrentPage === 1}
+                      className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
 
-                    {getPageNumbers().map((page, idx) =>
-                      page === "..." ? (
-                        <span
-                          key={`ellipsis-${idx}`}
-                          className="px-2 text-xs text-gray-500"
-                        >
-                          ...
-                        </span>
-                      ) : (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-2 py-1 text-xs border rounded-md ${
-                            currentPage === page
-                              ? "bg-blue-600 text-white"
-                              : "bg-white"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      )
-                    )}
+                    {(() => {
+                      const pages = [];
+                      const maxVisible = 5;
+
+                      if (faculteTotalPages <= maxVisible + 2) {
+                        for (let i = 1; i <= faculteTotalPages; i++)
+                          pages.push(i);
+                      } else {
+                        pages.push(1);
+
+                        let startPage = Math.max(2, faculteCurrentPage - 2);
+                        let endPage = Math.min(
+                          faculteTotalPages - 1,
+                          faculteCurrentPage + 2
+                        );
+
+                        if (faculteCurrentPage <= 3) endPage = maxVisible;
+                        if (faculteCurrentPage >= faculteTotalPages - 2)
+                          startPage = faculteTotalPages - maxVisible + 1;
+
+                        if (startPage > 2) pages.push("...");
+
+                        for (let i = startPage; i <= endPage; i++)
+                          pages.push(i);
+
+                        if (endPage < faculteTotalPages - 1) pages.push("...");
+
+                        pages.push(faculteTotalPages);
+                      }
+
+                      return pages.map((page, idx) =>
+                        page === "..." ? (
+                          <span
+                            key={`ellipsis-${idx}`}
+                            className="px-2 text-xs text-gray-500"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-3 py-1 text-sm border rounded-md ${
+                              faculteCurrentPage === page
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white hover:bg-gray-50"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      );
+                    })()}
 
                     <button
                       onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        setCurrentPage((p) =>
+                          Math.min(faculteTotalPages, p + 1)
+                        )
                       }
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="p-1 border rounded-md disabled:opacity-50"
+                      disabled={
+                        faculteCurrentPage === faculteTotalPages ||
+                        faculteTotalPages === 0
+                      }
+                      className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -1842,10 +2518,10 @@ const EnseignantsView = () => {
               </div>
               <input
                 type="text"
-                className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all uppercase"
+                className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                 value={newFaculte}
-                onChange={(e) => setNewFaculte(e.target.value.toUpperCase())}
-                placeholder="Ex: DROIT, MEDECINE..."
+                onChange={(e) => setNewFaculte(e.target.value)}
+                placeholder="Ex: Droit, Médecine..."
                 required
               />
             </div>
@@ -1868,7 +2544,7 @@ const EnseignantsView = () => {
         </div>
       </Modal>
 
-      {/* ⭐ MODAL MODIFIER FACULTÉ */}
+      {/* MODAL MODIFIER FACULTÉ */}
       <Modal
         isOpen={showModalEditFaculte}
         onClose={() => {
@@ -1891,10 +2567,10 @@ const EnseignantsView = () => {
               </div>
               <input
                 type="text"
-                className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all uppercase"
+                className="pl-10 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
                 value={newFaculte}
-                onChange={(e) => setNewFaculte(e.target.value.toUpperCase())}
-                placeholder="Ex: DROIT, MEDECINE..."
+                onChange={(e) => setNewFaculte(e.target.value)}
+                placeholder="Ex: Droit, Médecine..."
                 required
               />
             </div>
@@ -1931,10 +2607,10 @@ const EnseignantsView = () => {
             sexe: "M",
             im: "",
             date_naissance: "",
-            corps: "MC",
+            corps: "AES",
             diplome: "",
             specialite: "",
-            categorie: CATEGORIES[2],
+            titre: TITRES[0],
           });
         }}
         title={`Ajouter un Enseignant - ${activeTab}`}
@@ -1958,15 +2634,15 @@ const EnseignantsView = () => {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none uppercase"
+                  className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   value={newTeacher.nom}
                   onChange={(e) =>
                     setNewTeacher({
                       ...newTeacher,
-                      nom: e.target.value.toUpperCase(),
+                      nom: e.target.value,
                     })
                   }
-                  placeholder="NOM Prénom"
+                  placeholder="Nom Prénom"
                   required
                 />
               </div>
@@ -2053,7 +2729,7 @@ const EnseignantsView = () => {
                     setNewTeacher({
                       ...newTeacher,
                       corps: selectedCorps,
-                      categorie: CORPS_TO_TITRE[selectedCorps] || CATEGORIES[0],
+                      titre: CORPS_TO_TITRE[selectedCorps] || TITRES[0],
                     });
                   }}
                   required
@@ -2072,15 +2748,15 @@ const EnseignantsView = () => {
                 </label>
                 <select
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
-                  value={newTeacher.categorie}
+                  value={newTeacher.titre}
                   onChange={(e) =>
-                    setNewTeacher({ ...newTeacher, categorie: e.target.value })
+                    setNewTeacher({ ...newTeacher, titre: e.target.value })
                   }
                   required
                 >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {TITRES.map((titre) => (
+                    <option key={titre} value={titre}>
+                      {titre}
                     </option>
                   ))}
                 </select>
@@ -2120,7 +2796,7 @@ const EnseignantsView = () => {
                         specialite: e.target.value,
                       })
                     }
-                    placeholder="Ex: IA"
+                    placeholder="Ex: Intelligence Artificielle"
                   />
                 </div>
               </div>
@@ -2199,10 +2875,10 @@ const EnseignantsView = () => {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-500 mb-1">
-                  Catégorie
+                  Titre
                 </label>
                 <p className="text-gray-800 font-semibold">
-                  {selectedTeacher?.categorie ?? "N/A"}
+                  {selectedTeacher?.titre ?? "N/A"}
                 </p>
               </div>
               <div className="col-span-2">
@@ -2267,12 +2943,12 @@ const EnseignantsView = () => {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none uppercase"
+                  className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   value={editTeacher?.nom || ""}
                   onChange={(e) =>
                     setEditTeacher({
                       ...editTeacher,
-                      nom: e.target.value.toUpperCase(),
+                      nom: e.target.value,
                     })
                   }
                   required
@@ -2354,13 +3030,13 @@ const EnseignantsView = () => {
                 </label>
                 <select
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
-                  value={editTeacher?.corps || "MC"}
+                  value={editTeacher?.corps || "AES"}
                   onChange={(e) => {
                     const selectedCorps = e.target.value;
                     setEditTeacher({
                       ...editTeacher,
                       corps: selectedCorps,
-                      categorie: CORPS_TO_TITRE[selectedCorps] || CATEGORIES[0],
+                      titre: CORPS_TO_TITRE[selectedCorps] || TITRES[0],
                     });
                   }}
                   required
@@ -2379,18 +3055,18 @@ const EnseignantsView = () => {
                 </label>
                 <select
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none bg-white"
-                  value={editTeacher?.categorie || CATEGORIES[0]}
+                  value={editTeacher?.titre || TITRES[0]}
                   onChange={(e) =>
                     setEditTeacher({
                       ...editTeacher,
-                      categorie: e.target.value,
+                      titre: e.target.value,
                     })
                   }
                   required
                 >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {TITRES.map((titre) => (
+                    <option key={titre} value={titre}>
+                      {titre}
                     </option>
                   ))}
                 </select>

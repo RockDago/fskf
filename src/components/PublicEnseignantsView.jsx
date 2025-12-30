@@ -141,19 +141,17 @@ const PublicEnseignantsView = () => {
       setError(null);
 
       try {
-        const params = {
+        // Construire les paramètres de base (sans search afin de pouvoir
+        // gérer une recherche insensible à la casse côté client)
+        const baseParams = {
           page: currentPage,
           per_page: itemsPerPage,
         };
 
-        if (searchTerm && searchTerm.trim() !== "") {
-          params.search = searchTerm.trim();
-        }
-
         if (selectedUniv !== "Tous") {
           const universite = universites.find((u) => u.nom === selectedUniv);
           if (universite) {
-            params.universite_id = universite.id;
+            baseParams.universite_id = universite.id;
           }
         }
 
@@ -162,19 +160,44 @@ const PublicEnseignantsView = () => {
             (e) => e.nom === selectedEtablissement
           );
           if (etablissement) {
-            params.etablissement_id = etablissement.id;
+            baseParams.etablissement_id = etablissement.id;
           }
         }
 
         if (selectedGrade !== "Tous") {
-          params.categorie = selectedGrade;
+          baseParams.categorie = selectedGrade;
         }
 
         if (selectedDiplome !== "Tous") {
-          params.diplome = selectedDiplome;
+          baseParams.diplome = selectedDiplome;
         }
 
-        const response = await enseignantService.getAllPublic(params);
+        // Si un terme de recherche est présent, déléguer la recherche au serveur
+        // via le param `search`. Cela évite de dépendre d'un fetch massif
+        // que le serveur pourrait tronquer. Sinon, on récupère la page normale.
+        const fetchParams =
+          searchTerm && searchTerm.trim() !== ""
+            ? { ...baseParams, search: searchTerm.trim() }
+            : baseParams;
+
+        const response = await enseignantService.getAllPublic(fetchParams);
+
+        // Debug logs pour aider à diagnostiquer la recherche (après fetch)
+        try {
+          console.debug("[PublicEnseignantsView] fetchParams:", fetchParams);
+          console.debug(
+            "[PublicEnseignantsView] fetched_count:",
+            (response.data || []).length,
+            " total:",
+            response.total
+          );
+          console.debug(
+            "[PublicEnseignantsView] sample_names:",
+            (response.data || []).slice(0, 10).map((t) => t.nom)
+          );
+        } catch (e) {
+          /* noop */
+        }
 
         const transformedData = (response.data || []).map((teacher) => ({
           id: teacher.id,
@@ -186,14 +209,18 @@ const PublicEnseignantsView = () => {
           diplome: teacher.diplome || "N/A",
         }));
 
-        const sortedData = transformedData.sort((a, b) => {
-          const nomA = (a.nom || "").toLowerCase();
-          const nomB = (b.nom || "").toLowerCase();
-          return nomA.localeCompare(nomB, "fr", { sensitivity: "base" });
-        });
+        // Tri de base (insensible à la casse)
+        const sortByName = (arr) =>
+          arr.sort((a, b) =>
+            (a.nom || "").localeCompare(b.nom || "", "fr", {
+              sensitivity: "base",
+            })
+          );
 
+        // On suppose que le serveur a filtré quand `search` était fourni.
+        const sortedData = sortByName(transformedData);
         setTeachers(sortedData);
-        setTotalItems(response.total || 0);
+        setTotalItems(response.total || transformedData.length || 0);
       } catch (err) {
         console.error("Erreur lors du chargement des enseignants:", err);
         setError("Impossible de charger les enseignants");
