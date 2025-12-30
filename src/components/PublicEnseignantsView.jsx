@@ -45,6 +45,37 @@ const DIPLOMES = [
   "DOCTEUR D'ETAT",
 ];
 
+// ✅ Helper: normaliser texte (titres, corps, etc.) — enlever accents et mettre en MAJ
+const normalizeText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+
+// ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
+const normalizeSearchText = (text) => {
+  if (!text) return "";
+  return String(text)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
+
+// ✅ Helper: normaliser la réponse API
+const extractArrayFromResponse = (response) => {
+  if (!response) return [];
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response.data)) return response.data;
+  if (response.data && Array.isArray(response.data.data))
+    return response.data.data;
+  if (Array.isArray(response?.data?.enseignants))
+    return response.data.enseignants;
+  return [];
+};
+
 const PublicEnseignantsView = () => {
   const navigate = useNavigate();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -53,6 +84,7 @@ const PublicEnseignantsView = () => {
   const [universites, setUniversites] = useState([]);
   const [etablissements, setEtablissements] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]); // ✅ Pour le filtrage côté client
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -74,7 +106,8 @@ const PublicEnseignantsView = () => {
       try {
         setLoading(true);
         const data = await universiteService.getAll();
-        setUniversites(data);
+        const list = extractArrayFromResponse(data);
+        setUniversites(Array.isArray(list) ? list : []);
         setError(null);
       } catch (err) {
         console.error("Erreur lors du chargement des universités:", err);
@@ -104,7 +137,8 @@ const PublicEnseignantsView = () => {
             data = [];
           }
         }
-        setEtablissements(data);
+        const list = extractArrayFromResponse(data);
+        setEtablissements(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error("Erreur lors du chargement des établissements:", err);
         setEtablissements([]);
@@ -114,7 +148,127 @@ const PublicEnseignantsView = () => {
     fetchEtablissements();
   }, [selectedUniv, universites]);
 
-  // ✅ Calculer les établissements disponibles
+  // ✅ Charger TOUS les enseignants une seule fois pour le filtrage côté client
+  useEffect(() => {
+    const fetchAllTeachers = async () => {
+      if (universites.length === 0) return;
+
+      try {
+        setLoading(true);
+
+        // Charger toutes les données sans pagination
+        const params = {
+          per_page: 100000, // Nombre élevé pour tout récupérer
+        };
+
+        const response = await enseignantService.getAllPublic(params);
+        const list = extractArrayFromResponse(response);
+
+        const transformedData = (list || []).map((teacher) => ({
+          id: teacher.id,
+          nom: teacher.nom || "",
+          grade: normalizeText(teacher.categorie || teacher.corps || ""),
+          etablissement: teacher.etablissement?.nom || "N/A",
+          univ: teacher.universite?.nom || "N/A",
+          specialite: teacher.specialite || "N/A",
+          diplome: teacher.diplome || "N/A",
+          normalized: {
+            nom: normalizeSearchText(teacher.nom || ""),
+            grade: normalizeSearchText(
+              teacher.categorie || teacher.corps || ""
+            ),
+            etablissement: normalizeSearchText(
+              teacher.etablissement?.nom || ""
+            ),
+            univ: normalizeSearchText(teacher.universite?.nom || ""),
+            specialite: normalizeSearchText(teacher.specialite || ""),
+            diplome: normalizeSearchText(teacher.diplome || ""),
+          },
+        }));
+
+        setAllTeachers(transformedData);
+        setTotalItems(transformedData.length);
+      } catch (err) {
+        console.error("Erreur lors du chargement des enseignants:", err);
+        setError("Impossible de charger les enseignants");
+        setAllTeachers([]);
+        setTotalItems(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchAllTeachers();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [universites]);
+
+  // ✅ CORRECTION: Fonction de recherche LIKE SQL améliorée
+  const searchInTeacher = (teacher, searchTerm) => {
+    if (!searchTerm) return true;
+
+    const normalizedSearch = normalizeSearchText(searchTerm);
+
+    // Recherche dans tous les champs normalisés
+    return (
+      teacher.normalized.nom.includes(normalizedSearch) ||
+      teacher.normalized.grade.includes(normalizedSearch) ||
+      teacher.normalized.etablissement.includes(normalizedSearch) ||
+      teacher.normalized.univ.includes(normalizedSearch) ||
+      teacher.normalized.specialite.includes(normalizedSearch) ||
+      teacher.normalized.diplome.includes(normalizedSearch)
+    );
+  };
+
+  // ✅ FILTRAGE côté client avec recherche LIKE SQL
+  const filteredTeachers = useMemo(() => {
+    if (!Array.isArray(allTeachers)) return [];
+
+    return allTeachers.filter((teacher) => {
+      // ✅ Recherche LIKE SQL
+      const matchesSearch = searchInTeacher(teacher, searchTerm);
+
+      // Filtre Université
+      const matchesUniv =
+        selectedUniv === "Tous" ||
+        normalizeText(teacher.univ) === normalizeText(selectedUniv);
+
+      // Filtre Établissement
+      const matchesEtablissement =
+        selectedEtablissement === "Tous" ||
+        normalizeText(teacher.etablissement) ===
+          normalizeText(selectedEtablissement);
+
+      // Filtre Grade
+      const matchesGrade =
+        selectedGrade === "Tous" ||
+        normalizeText(teacher.grade) === normalizeText(selectedGrade);
+
+      // Filtre Diplôme
+      const matchesDiplome =
+        selectedDiplome === "Tous" ||
+        normalizeText(teacher.diplome) === normalizeText(selectedDiplome);
+
+      return (
+        matchesSearch &&
+        matchesUniv &&
+        matchesEtablissement &&
+        matchesGrade &&
+        matchesDiplome
+      );
+    });
+  }, [
+    allTeachers,
+    searchTerm,
+    selectedUniv,
+    selectedEtablissement,
+    selectedGrade,
+    selectedDiplome,
+  ]);
+
+  // ✅ Calcul des établissements disponibles
   const availableEtablissements = useMemo(() => {
     const etabNames = Array.from(
       new Set(etablissements.map((e) => e.nom))
@@ -132,121 +286,31 @@ const PublicEnseignantsView = () => {
     }
   }, [availableEtablissements, selectedEtablissement]);
 
-  // ✅ Charger les enseignants avec filtres
+  // ✅ Pagination des résultats filtrés
   useEffect(() => {
-    if (universites.length === 0) return;
+    if (filteredTeachers.length === 0) {
+      setTeachers([]);
+      setTotalItems(0);
+      return;
+    }
 
-    const fetchEnseignants = async () => {
-      setLoading(true);
-      setError(null);
+    // Mettre à jour le total
+    setTotalItems(filteredTeachers.length);
 
-      try {
-        // Construire les paramètres de base (sans search afin de pouvoir
-        // gérer une recherche insensible à la casse côté client)
-        const baseParams = {
-          page: currentPage,
-          per_page: itemsPerPage,
-        };
+    // Calculer les enseignants à afficher pour la page courante
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedTeachers = filteredTeachers.slice(startIndex, endIndex);
 
-        if (selectedUniv !== "Tous") {
-          const universite = universites.find((u) => u.nom === selectedUniv);
-          if (universite) {
-            baseParams.universite_id = universite.id;
-          }
-        }
+    // Tri alphabétique par nom
+    const sortedTeachers = paginatedTeachers.sort((a, b) =>
+      (a.nom || "").localeCompare(b.nom || "", "fr", {
+        sensitivity: "base",
+      })
+    );
 
-        if (selectedEtablissement !== "Tous") {
-          const etablissement = etablissements.find(
-            (e) => e.nom === selectedEtablissement
-          );
-          if (etablissement) {
-            baseParams.etablissement_id = etablissement.id;
-          }
-        }
-
-        if (selectedGrade !== "Tous") {
-          baseParams.categorie = selectedGrade;
-        }
-
-        if (selectedDiplome !== "Tous") {
-          baseParams.diplome = selectedDiplome;
-        }
-
-        // Si un terme de recherche est présent, déléguer la recherche au serveur
-        // via le param `search`. Cela évite de dépendre d'un fetch massif
-        // que le serveur pourrait tronquer. Sinon, on récupère la page normale.
-        const fetchParams =
-          searchTerm && searchTerm.trim() !== ""
-            ? { ...baseParams, search: searchTerm.trim() }
-            : baseParams;
-
-        const response = await enseignantService.getAllPublic(fetchParams);
-
-        // Debug logs pour aider à diagnostiquer la recherche (après fetch)
-        try {
-          console.debug("[PublicEnseignantsView] fetchParams:", fetchParams);
-          console.debug(
-            "[PublicEnseignantsView] fetched_count:",
-            (response.data || []).length,
-            " total:",
-            response.total
-          );
-          console.debug(
-            "[PublicEnseignantsView] sample_names:",
-            (response.data || []).slice(0, 10).map((t) => t.nom)
-          );
-        } catch (e) {
-          /* noop */
-        }
-
-        const transformedData = (response.data || []).map((teacher) => ({
-          id: teacher.id,
-          nom: teacher.nom,
-          grade: teacher.categorie || teacher.corps,
-          etablissement: teacher.etablissement?.nom || "N/A",
-          univ: teacher.universite?.nom || "N/A",
-          specialite: teacher.specialite || "N/A",
-          diplome: teacher.diplome || "N/A",
-        }));
-
-        // Tri de base (insensible à la casse)
-        const sortByName = (arr) =>
-          arr.sort((a, b) =>
-            (a.nom || "").localeCompare(b.nom || "", "fr", {
-              sensitivity: "base",
-            })
-          );
-
-        // On suppose que le serveur a filtré quand `search` était fourni.
-        const sortedData = sortByName(transformedData);
-        setTeachers(sortedData);
-        setTotalItems(response.total || transformedData.length || 0);
-      } catch (err) {
-        console.error("Erreur lors du chargement des enseignants:", err);
-        setError("Impossible de charger les enseignants");
-        setTeachers([]);
-        setTotalItems(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-      fetchEnseignants();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [
-    currentPage,
-    itemsPerPage,
-    selectedUniv,
-    selectedEtablissement,
-    selectedGrade,
-    selectedDiplome,
-    searchTerm,
-    universites,
-    etablissements,
-  ]);
+    setTeachers(sortedTeachers);
+  }, [filteredTeachers, currentPage, itemsPerPage]);
 
   const UNIVERSITES_LIST = useMemo(() => {
     return universites.map((u) => u.nom);
@@ -419,7 +483,7 @@ const PublicEnseignantsView = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Nom, diplôme..."
+                  placeholder="Nom, diplôme, spécialité, grade..."
                   className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-300 rounded text-sm focus:border-[#4c7026] focus:ring-1 focus:ring-[#4c7026] outline-none transition-all placeholder:text-gray-400"
                   value={searchTerm}
                   onChange={(e) => {
@@ -520,12 +584,16 @@ const PublicEnseignantsView = () => {
             </div>
           </div>
 
-          <div className="flex justify-center md:justify-end mt-4 pt-4 border-t border-gray-100">
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+            <div className="text-xs text-gray-500">
+              <span className="font-bold text-[#4c7026]">{totalItems}</span>{" "}
+              enseignants trouvés
+            </div>
             <button
               onClick={resetFilters}
-              className="w-full md:w-auto px-4 py-2 text-xs font-bold uppercase bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#ea1b31] rounded transition-colors"
+              className="px-4 py-2 text-xs font-bold uppercase bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-[#ea1b31] rounded transition-colors"
             >
-              Effacer les filtres
+              Effacer tous les filtres
             </button>
           </div>
         </div>
@@ -669,43 +737,56 @@ const PublicEnseignantsView = () => {
               <div className="py-16 text-center text-gray-500 bg-white">
                 <Building2 size={48} className="mx-auto text-gray-300 mb-4" />
                 <p className="text-lg font-medium text-gray-600">
-                  Aucun résultat trouvé
+                  {searchTerm ||
+                  selectedUniv !== "Tous" ||
+                  selectedEtablissement !== "Tous" ||
+                  selectedGrade !== "Tous" ||
+                  selectedDiplome !== "Tous"
+                    ? "Aucun résultat trouvé avec les filtres sélectionnés"
+                    : "Aucun enseignant trouvé"}
                 </p>
-                <p className="text-sm px-4">
-                  Modifiez vos critères de recherche pour voir plus de
-                  résultats.
+                <p className="text-sm px-4 mt-2">
+                  {searchTerm
+                    ? `Aucun résultat pour "${searchTerm}"`
+                    : "Modifiez vos critères de recherche pour voir plus de résultats."}
                 </p>
               </div>
             )}
           </div>
 
           {/* Footer Pagination */}
-          <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
-            <span className="font-medium">
-              Page {currentPage} sur {totalPages}
-            </span>
-            <div className="flex gap-1 items-center">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1 || loading}
-                className="px-3 py-1.5 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                <ChevronLeft size={14} /> Précédent
-              </button>
+          {totalPages > 1 && (
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+              <span className="font-medium">
+                Page {currentPage} sur {totalPages}
+              </span>
+              <div className="flex gap-1 items-center">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1 || loading}
+                  className="px-3 py-1.5 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  <ChevronLeft size={14} /> Précédent
+                </button>
 
-              <div className="px-2 font-bold text-gray-800">{currentPage}</div>
+                <div className="px-2 font-bold text-gray-800">
+                  {currentPage}
+                </div>
 
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages || loading}
-                className="px-3 py-1.5 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                Suivant <ChevronRight size={14} />
-              </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages || loading}
+                  className="px-3 py-1.5 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  Suivant <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Bouton Retour En Bas */}

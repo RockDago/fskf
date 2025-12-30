@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.aaeedfca.css",
-    "main.js": "/static/js/main.1ab32e92.js",
+    "main.css": "/static/css/main.531fa644.css",
+    "main.js": "/static/js/main.a5af68ca.js",
     "static/js/977.45a5b88f.chunk.js": "/static/js/977.45a5b88f.chunk.js",
     "static/js/455.dfbc8513.chunk.js": "/static/js/455.dfbc8513.chunk.js",
     "static/js/453.abb2a8e2.chunk.js": "/static/js/453.abb2a8e2.chunk.js",
@@ -11,14 +11,14 @@
     "static/media/logo fosika.png": "/static/media/logo fosika.ce51ba6ae78da54e97f1.png",
     "static/media/Asset 8.png": "/static/media/Asset 8.40d1b49e7f0d3fc98ca3.png",
     "index.html": "/index.html",
-    "main.aaeedfca.css.map": "/static/css/main.aaeedfca.css.map",
-    "main.1ab32e92.js.map": "/static/js/main.1ab32e92.js.map",
+    "main.531fa644.css.map": "/static/css/main.531fa644.css.map",
+    "main.a5af68ca.js.map": "/static/js/main.a5af68ca.js.map",
     "977.45a5b88f.chunk.js.map": "/static/js/977.45a5b88f.chunk.js.map",
     "455.dfbc8513.chunk.js.map": "/static/js/455.dfbc8513.chunk.js.map",
     "453.abb2a8e2.chunk.js.map": "/static/js/453.abb2a8e2.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.aaeedfca.css",
-    "static/js/main.1ab32e92.js"
+    "static/css/main.531fa644.css",
+    "static/js/main.a5af68ca.js"
   ]
 }

@@ -51,8 +51,8 @@ const LEGENDE_CORPS = [
 
 // Mapping corps vers titre
 const CORPS_TO_TITRE = {
-  AES: "ASSITANT D'ENSEIGNEMENT SUPERIEUR",
-  PE: "PROFESSEUR EMMERITE",
+  AES: "ASSISTANT D'ENSEIGNEMENT SUPERIEUR",
+  PE: "PROFESSEUR ÉMMERITE",
   PT: "PROFESSEUR TITULAIRE",
   PES: "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
   MC: "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
@@ -63,10 +63,10 @@ const CORPS = LEGENDE_CORPS.map((item) => item.code);
 
 // Titres (catégories) triés alphabétiquement
 const TITRES = [
-  "ASSITANT D'ENSEIGNEMENT SUPERIEUR",
+  "ASSISTANT D'ENSEIGNEMENT SUPERIEUR",
   "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
   "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
-  "PROFESSEUR EMMERITE",
+  "PROFESSEUR ÉMMERITE",
   "PROFESSEUR TITULAIRE",
 ].sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
 
@@ -362,13 +362,7 @@ const EnseignantsView = () => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [searchTeacher, setSearchTeacher] = useState("");
 
-  // ✅ Normaliser les titres
-  const NORMALIZED_TITRES = useMemo(
-    () => TITRES.map((c) => normalizeText(c)),
-    []
-  );
-
-  // Fonction pour afficher un toast
+  // ✅ Fonction pour afficher un toast
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(
@@ -556,10 +550,6 @@ const EnseignantsView = () => {
           etablissement_id: etablissement.id,
         };
 
-        if (searchTeacher && searchTeacher.trim() !== "") {
-          params.search = searchTeacher.trim();
-        }
-
         const response = await enseignantService.getAll(params);
         const list = extractArrayFromResponse(response);
 
@@ -589,35 +579,50 @@ const EnseignantsView = () => {
 
     const timeoutId = setTimeout(fetchEnseignants, 300);
     return () => clearTimeout(timeoutId);
-  }, [selectedUniv, activeTab, etablissements, searchTeacher]);
+  }, [selectedUniv, activeTab, etablissements]);
+
+  // ✅ CORRECTION: Fonction de recherche LIKE SQL améliorée
+  const searchInTeacher = (teacher, searchTerm) => {
+    if (!searchTerm) return true;
+
+    const normalizedSearch = normalizeSearchText(searchTerm);
+
+    // Recherche dans tous les champs
+    return (
+      normalizeSearchText(teacher.nom || "").includes(normalizedSearch) ||
+      normalizeSearchText(teacher.im || "").includes(normalizedSearch) ||
+      normalizeSearchText(teacher.diplome || "").includes(normalizedSearch) ||
+      normalizeSearchText(teacher.specialite || "").includes(
+        normalizedSearch
+      ) ||
+      normalizeSearchText(teacher.corps || "").includes(normalizedSearch) ||
+      normalizeSearchText(teacher.titre || "").includes(normalizedSearch) ||
+      normalizeSearchText(teacher.faculte_nom || "").includes(
+        normalizedSearch
+      ) ||
+      (teacher.sexe &&
+        normalizeSearchText(teacher.sexe).includes(normalizedSearch))
+    );
+  };
 
   // --- FILTRES RECAP ---
   const filteredRecapTeachers = useMemo(() => {
     if (!Array.isArray(allTeachers)) return [];
 
     return allTeachers.filter((teacher) => {
-      // ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
-      const searchQuery = normalizeSearchText(recapFilter.search || "");
+      // ✅ Recherche LIKE SQL
+      const matchesSearch = searchInTeacher(teacher, recapFilter.search);
 
-      let matchesSearch = true;
-      if (searchQuery) {
-        matchesSearch =
-          normalizeSearchText(teacher.nom || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.im || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.diplome || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.specialite || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.corps || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.titre || "").includes(searchQuery) ||
-          normalizeSearchText(teacher.faculte_nom || "").includes(searchQuery);
-      }
-
+      // Filtre Faculté
       const matchesFaculte =
         !recapFilter.faculte ||
         (teacher.faculte_nom || "") === recapFilter.faculte;
 
+      // Filtre Corps
       const matchesCorps =
         !recapFilter.corps || (teacher.corps || "") === recapFilter.corps;
 
+      // Filtre Titre
       const matchesTitre =
         !recapFilter.titre ||
         normalizeText(teacher.titre || "") === normalizeText(recapFilter.titre);
@@ -651,19 +656,8 @@ const EnseignantsView = () => {
     if (!Array.isArray(teachers)) return [];
 
     return teachers.filter((t) => {
-      // ✅ Recherche LIKE SQL (insensible à la casse et aux accents)
-      const searchQuery = normalizeSearchText(faculteFilter.search || "");
-
-      let matchesSearch = true;
-      if (searchQuery) {
-        matchesSearch =
-          normalizeSearchText(t?.nom ?? "").includes(searchQuery) ||
-          normalizeSearchText(t?.im ?? "").includes(searchQuery) ||
-          normalizeSearchText(t?.diplome ?? "").includes(searchQuery) ||
-          normalizeSearchText(t?.specialite ?? "").includes(searchQuery) ||
-          normalizeSearchText(t?.titre ?? "").includes(searchQuery) ||
-          normalizeSearchText(t?.corps ?? "").includes(searchQuery);
-      }
+      // ✅ Recherche LIKE SQL
+      const matchesSearch = searchInTeacher(t, faculteFilter.search);
 
       // Filtre Corps
       const matchesCorps =
@@ -764,6 +758,42 @@ const EnseignantsView = () => {
 
     return stats;
   }, [selectedUniv, etablissements, allTeachers]);
+
+  // ✅ Groupe les enseignants par titre pour l'affichage
+  const groupTeachersByTitre = (teacherList) => {
+    const groups = {};
+
+    if (!Array.isArray(teacherList)) return groups;
+
+    teacherList.forEach((teacher) => {
+      const titre = teacher?.titre || "Sans titre";
+      if (!groups[titre]) {
+        groups[titre] = [];
+      }
+      groups[titre].push(teacher);
+    });
+
+    // Trier les titres selon l'ordre défini
+    const orderedGroups = {};
+    const allTitres = [...TITRES.map((t) => normalizeText(t)), "SANS TITRE"];
+
+    allTitres.forEach((titre) => {
+      if (groups[titre]) {
+        orderedGroups[titre] = groups[titre];
+      }
+    });
+
+    return orderedGroups;
+  };
+
+  // ✅ Groupes pour l'affichage
+  const groupedRecapTeachers = useMemo(() => {
+    return groupTeachersByTitre(paginatedRecapTeachers);
+  }, [paginatedRecapTeachers]);
+
+  const groupedFaculteTeachers = useMemo(() => {
+    return groupTeachersByTitre(paginatedFaculteTeachers);
+  }, [paginatedFaculteTeachers]);
 
   // --- ACTIONS UNIVERSITÉ ---
   const handleAddUniv = async () => {
@@ -1102,21 +1132,6 @@ const EnseignantsView = () => {
     });
   };
 
-  // ✅ Groupe les enseignants par titre
-  const groupTeachersByTitre = (teacherList) => {
-    const groups = {};
-
-    teacherList.forEach((teacher) => {
-      const titre = teacher?.titre || "Sans titre";
-      if (!groups[titre]) {
-        groups[titre] = [];
-      }
-      groups[titre].push(teacher);
-    });
-
-    return groups;
-  };
-
   // ✅ Fonction pour trier les colonnes RECAP
   const handleSortRecap = (field) => {
     setRecapSort((prev) => ({
@@ -1138,22 +1153,12 @@ const EnseignantsView = () => {
   // ✅ Reset page quand filtre change
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, itemsPerPage, recapFilter, faculteFilter, searchTeacher]);
+  }, [activeTab, itemsPerPage, recapFilter, faculteFilter]);
 
   const currentFacultes = useMemo(
     () => etablissements.map((e) => e.nom),
     [etablissements]
   );
-
-  // ✅ Grouper les enseignants par titre pour FACULTE
-  const groupedFaculteTeachers = useMemo(() => {
-    return groupTeachersByTitre(paginatedFaculteTeachers);
-  }, [paginatedFaculteTeachers]);
-
-  // ✅ Grouper les enseignants par titre pour RECAP
-  const groupedRecapTeachers = useMemo(() => {
-    return groupTeachersByTitre(paginatedRecapTeachers);
-  }, [paginatedRecapTeachers]);
 
   // ✅ Affichage du loader initial
   if (loading && viewState === "selection" && universites.length === 0) {
@@ -1848,8 +1853,8 @@ const EnseignantsView = () => {
                       }
                     >
                       <option value="">Tous les titres</option>
-                      <option value="ASSITANT D'ENSEIGNEMENT SUPERIEUR">
-                        ASSITANT D'ENSEIGNEMENT SUPERIEUR
+                      <option value="ASSISTANT D'ENSEIGNEMENT SUPERIEUR">
+                        ASSISTANT D'ENSEIGNEMENT SUPERIEUR
                       </option>
                       <option value="MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR">
                         MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR
@@ -1857,8 +1862,8 @@ const EnseignantsView = () => {
                       <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
                         PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
                       </option>
-                      <option value="PROFESSEUR EMMERITE">
-                        PROFESSEUR EMMERITE
+                      <option value="PROFESSEUR ÉMMERITE">
+                        PROFESSEUR ÉMMERITE
                       </option>
                       <option value="PROFESSEUR TITULAIRE">
                         PROFESSEUR TITULAIRE
@@ -1954,8 +1959,6 @@ const EnseignantsView = () => {
                       Object.keys(groupedRecapTeachers).map((titre) => {
                         const teachersInTitre = groupedRecapTeachers[titre];
 
-                        if (teachersInTitre.length === 0) return null;
-
                         return (
                           <React.Fragment key={titre}>
                             {/* En-tête de titre */}
@@ -2037,7 +2040,12 @@ const EnseignantsView = () => {
                           colSpan={10}
                           className="p-8 text-center text-gray-500 text-sm"
                         >
-                          Aucun enseignant trouvé avec les filtres sélectionnés.
+                          {recapFilter.search ||
+                          recapFilter.faculte ||
+                          recapFilter.corps ||
+                          recapFilter.titre
+                            ? "Aucun enseignant trouvé avec les filtres sélectionnés."
+                            : "Aucun enseignant dans cette université."}
                         </td>
                       </tr>
                     )}
@@ -2080,35 +2088,59 @@ const EnseignantsView = () => {
                         <ChevronLeft className="w-4 h-4" />
                       </button>
 
-                      {Array.from(
-                        { length: Math.min(5, recapTotalPages) },
-                        (_, i) => {
-                          let pageNum;
-                          if (recapTotalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (recapCurrentPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (recapCurrentPage >= recapTotalPages - 2) {
-                            pageNum = recapTotalPages - 4 + i;
-                          } else {
-                            pageNum = recapCurrentPage - 2 + i;
-                          }
+                      {(() => {
+                        const pages = [];
+                        const maxVisible = 5;
 
-                          return (
+                        if (recapTotalPages <= maxVisible + 2) {
+                          for (let i = 1; i <= recapTotalPages; i++)
+                            pages.push(i);
+                        } else {
+                          pages.push(1);
+
+                          let startPage = Math.max(2, recapCurrentPage - 2);
+                          let endPage = Math.min(
+                            recapTotalPages - 1,
+                            recapCurrentPage + 2
+                          );
+
+                          if (recapCurrentPage <= 3) endPage = maxVisible;
+                          if (recapCurrentPage >= recapTotalPages - 2)
+                            startPage = recapTotalPages - maxVisible + 1;
+
+                          if (startPage > 2) pages.push("...");
+
+                          for (let i = startPage; i <= endPage; i++)
+                            pages.push(i);
+
+                          if (endPage < recapTotalPages - 1) pages.push("...");
+
+                          pages.push(recapTotalPages);
+                        }
+
+                        return pages.map((page, idx) =>
+                          page === "..." ? (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="px-2 text-xs text-gray-500"
+                            >
+                              ...
+                            </span>
+                          ) : (
                             <button
-                              key={pageNum}
-                              onClick={() => setCurrentPage(pageNum)}
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
                               className={`px-3 py-1 text-sm border rounded-md ${
-                                recapCurrentPage === pageNum
+                                recapCurrentPage === page
                                   ? "bg-blue-600 text-white border-blue-600"
                                   : "bg-white hover:bg-gray-50"
                               }`}
                             >
-                              {pageNum}
+                              {page}
                             </button>
-                          );
-                        }
-                      )}
+                          )
+                        );
+                      })()}
 
                       <button
                         onClick={() =>
@@ -2194,7 +2226,7 @@ const EnseignantsView = () => {
                     }
                   >
                     <option value="">Tous les titres</option>
-                    <option value="ASSITANT D'ENSEIGNEMENT SUPERIEUR">
+                    <option value="ASSISTANT D'ENSEIGNEMENT SUPERIEUR">
                       ASSITANT D'ENSEIGNEMENT SUPERIEUR
                     </option>
                     <option value="MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR">
@@ -2203,7 +2235,7 @@ const EnseignantsView = () => {
                     <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
                       PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
                     </option>
-                    <option value="PROFESSEUR EMMERITE">
+                    <option value="PROFESSEUR ÉMMERITE">
                       PROFESSEUR EMMERITE
                     </option>
                     <option value="PROFESSEUR TITULAIRE">
