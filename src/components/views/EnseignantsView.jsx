@@ -52,7 +52,7 @@ const LEGENDE_CORPS = [
 // Mapping corps vers titre
 const CORPS_TO_TITRE = {
   AES: "ASSISTANT D'ENSEIGNEMENT SUPERIEUR",
-  PE: "PROFESSEUR ÉMMERITE",
+  PE: "PROFESSEUR ÉMÉRITE",
   PT: "PROFESSEUR TITULAIRE",
   PES: "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
   MC: "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
@@ -61,12 +61,12 @@ const CORPS_TO_TITRE = {
 // Corps enseignants (codes uniquement, tri alphabétique)
 const CORPS = LEGENDE_CORPS.map((item) => item.code);
 
-// Titres (catégories) triés alphabétiquement
+// Titres (catégories) triés alphabétiquement - CORRECTION: "ÉMÉRITE" au lieu de "ÉMMERITE"
 const TITRES = [
   "ASSISTANT D'ENSEIGNEMENT SUPERIEUR",
   "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
   "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
-  "PROFESSEUR ÉMMERITE",
+  "PROFESSEUR ÉMÉRITE",
   "PROFESSEUR TITULAIRE",
 ].sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
 
@@ -276,6 +276,28 @@ const MenuItem = ({ icon, label, onClick, danger }) => (
   </button>
 );
 
+// --- FONCTION DE DEBUG ---
+const logMissingData = (teachers, label) => {
+  console.log(`=== DEBUG ${label} ===`);
+  const missingTitre = teachers.filter((t) => !t.titre || t.titre === "");
+  const missingCorps = teachers.filter((t) => !t.corps || t.corps === "");
+
+  if (missingTitre.length > 0 || missingCorps.length > 0) {
+    console.log(`Total: ${teachers.length}`);
+    console.log(`Sans titre: ${missingTitre.length}`);
+    console.log(`Sans corps: ${missingCorps.length}`);
+
+    missingTitre.slice(0, 5).forEach((t, idx) => {
+      console.log(`Sans titre [${idx}]:`, {
+        id: t.id,
+        nom: t.nom,
+        original_titre: t._original_titre,
+        original_corps: t._original_corps,
+      });
+    });
+  }
+};
+
 // --- COMPOSANT PRINCIPAL ---
 const EnseignantsView = () => {
   const [viewState, setViewState] = useState("selection");
@@ -358,7 +380,11 @@ const EnseignantsView = () => {
   });
   const [editTeacher, setEditTeacher] = useState(null);
 
+  // Pagination states
+  const [recapCurrentPage, setRecapCurrentPage] = useState(1);
+  const [recapItemsPerPage, setRecapItemsPerPage] = useState(50); // ✅ Modifié de 10 à 50
   const [currentPage, setCurrentPage] = useState(1);
+  // Note: itemsPerPage pour les facultés également défini à 50
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [searchTeacher, setSearchTeacher] = useState("");
 
@@ -452,26 +478,30 @@ const EnseignantsView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ Charger les établissements quand une université est sélectionnée
+  // ✅ CORRECTION 1: Ajouter un useEffect pour charger les établissements au démarrage
   useEffect(() => {
     const fetchEtablissements = async () => {
-      if (!selectedUniv) return;
+      if (!selectedUniv) {
+        setEtablissements([]);
+        return;
+      }
 
       try {
-        const data = await etablissementService.getAll(selectedUniv.id);
-        const list = extractArrayFromResponse(data);
+        const response = await etablissementService.getAll({
+          universite_id: selectedUniv.id,
+        });
+        const list = extractArrayFromResponse(response);
         setEtablissements(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error("Erreur lors du chargement des établissements:", err);
         setEtablissements([]);
-        showToast("Erreur de chargement des établissements", "error");
       }
     };
 
     fetchEtablissements();
-  }, [selectedUniv]);
+  }, [selectedUniv]); // Se déclenche quand selectedUniv change
 
-  // ✅ Charger TOUS les enseignants pour le RECAP
+  // ✅ CORRECTION 2: Modifier le useEffect du RECAP pour ne pas dépendre de etablissements
   useEffect(() => {
     const fetchAllTeachersForRecap = async () => {
       if (!selectedUniv) {
@@ -480,47 +510,74 @@ const EnseignantsView = () => {
       }
 
       try {
-        setLoading(true);
+        // Charger d'abord les établissements
+        const etabResponse = await etablissementService.getAll({
+          universite_id: selectedUniv.id,
+        });
+        const etabList = extractArrayFromResponse(etabResponse);
+        const etablissementsLocal = Array.isArray(etabList) ? etabList : [];
+
+        // Si pas d'établissements, sortir
+        if (etablissementsLocal.length === 0) {
+          console.warn("Aucun établissement trouvé pour cette université");
+          setAllTeachers([]);
+          return;
+        }
+
+        // Charger tous les enseignants
         const params = {
           universite_id: selectedUniv.id,
-          per_page: 100000,
+          per_page: 1000,
         };
 
         const response = await enseignantService.getAll(params);
         const list = extractArrayFromResponse(response);
 
-        // Ajouter le nom de la faculté à chaque enseignant
+        // Normaliser les données avec les établissements
         const normalized = (Array.isArray(list) ? list : []).map((t) => {
-          const etab = etablissements.find(
+          const etab = etablissementsLocal.find(
             (e) => String(e.id) === String(t?.etablissement_id)
           );
+
+          const originalTitre = t?.categorie || t?.titre || "";
+          const originalCorps = t?.corps || "";
+          const titreNormalise = normalizeText(originalTitre);
+          const corpsNormalise = normalizeText(originalCorps);
+
           return {
             ...t,
-            nom: t?.nom ?? "",
-            im: t?.im ?? "",
-            sexe: normalizeText(t?.sexe),
-            corps: normalizeText(t?.corps),
-            titre: normalizeText(t?.categorie || t?.titre),
-            diplome: t?.diplome ?? "",
-            specialite: t?.specialite ?? "",
-            date_naissance: t?.date_naissance ?? "",
+            nom: t?.nom?.trim() || "",
+            im: t?.im?.trim() || "",
+            sexe: normalizeText(t?.sexe || "M"),
+            corps: corpsNormalise || originalCorps || "NON RENSEIGNÉ",
+            titre: titreNormalise || originalTitre || "SANS TITRE",
+            diplome: t?.diplome?.trim() || "",
+            specialite: t?.specialite?.trim() || "",
+            date_naissance: t?.date_naissance || "",
             etablissement_id: t?.etablissement_id ?? null,
-            faculte_nom: etab?.nom ?? "Non assigné",
+            faculte_nom: etab?.nom?.trim() || "Non assigné",
+            _original_titre: originalTitre,
+            _original_corps: originalCorps,
+            _original_diplome: t?.diplome,
+            _original_specialite: t?.specialite,
           };
         });
 
         setAllTeachers(normalized);
+        console.log(
+          `✅ ${normalized.length} enseignants chargés pour le RECAP`
+        );
       } catch (err) {
-        console.error("Erreur chargement RECAP enseignants:", err);
+        console.error(
+          "Erreur lors de la recherche globale des enseignants:",
+          err
+        );
         setAllTeachers([]);
-        showToast("Erreur de chargement du récapitulatif", "error");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchAllTeachersForRecap();
-  }, [selectedUniv, etablissements]);
+  }, [selectedUniv]); // ✅ Ne dépend QUE de selectedUniv
 
   // ✅ Charger les enseignants par faculté
   useEffect(() => {
@@ -548,26 +605,50 @@ const EnseignantsView = () => {
         const params = {
           universite_id: selectedUniv.id,
           etablissement_id: etablissement.id,
+          per_page: 200,
         };
 
         const response = await enseignantService.getAll(params);
         const list = extractArrayFromResponse(response);
 
-        // ✅ Normalisation des données
-        const normalized = (Array.isArray(list) ? list : []).map((t) => ({
-          ...t,
-          nom: t?.nom ?? "",
-          im: t?.im ?? "",
-          sexe: normalizeText(t?.sexe),
-          corps: normalizeText(t?.corps),
-          titre: normalizeText(t?.categorie || t?.titre),
-          diplome: t?.diplome ?? "",
-          specialite: t?.specialite ?? "",
-          date_naissance: t?.date_naissance ?? "",
-          etablissement_id: t?.etablissement_id ?? etablissement.id,
-        }));
+        // ✅ CORRECTION: Normalisation robuste
+        const normalized = (Array.isArray(list) ? list : []).map((t) => {
+          const etab = etablissements.find(
+            (e) => String(e.id) === String(t?.etablissement_id)
+          );
+
+          // Normalisation robuste avec valeurs par défaut
+          const originalTitre = t?.categorie || t?.titre || "";
+          const originalCorps = t?.corps || "";
+
+          // Si le titre est vide après normalisation, garder l'original
+          const titreNormalise = normalizeText(originalTitre);
+          const corpsNormalise = normalizeText(originalCorps);
+
+          return {
+            ...t,
+            nom: t?.nom?.trim() || "",
+            im: t?.im?.trim() || "",
+            sexe: normalizeText(t?.sexe || "M"),
+            corps: corpsNormalise || originalCorps || "NON RENSEIGNÉ",
+            titre: titreNormalise || originalTitre || "SANS TITRE",
+            diplome: t?.diplome?.trim() || "",
+            specialite: t?.specialite?.trim() || "",
+            date_naissance: t?.date_naissance || "",
+            etablissement_id: t?.etablissement_id ?? null,
+            faculte_nom: etab?.nom?.trim() || "Non assigné",
+            // Stocker TOUTES les valeurs originales
+            _original_titre: originalTitre,
+            _original_corps: originalCorps,
+            _original_diplome: t?.diplome,
+            _original_specialite: t?.specialite,
+          };
+        });
 
         setTeachers(normalized);
+
+        // Débogage
+        logMissingData(normalized, "Faculte Teachers");
       } catch (err) {
         console.error("Erreur lors du chargement des enseignants:", err);
         setTeachers([]);
@@ -581,27 +662,27 @@ const EnseignantsView = () => {
     return () => clearTimeout(timeoutId);
   }, [selectedUniv, activeTab, etablissements]);
 
-  // ✅ CORRECTION: Fonction de recherche LIKE SQL améliorée
+  // ✅ CORRECTION: Fonction de recherche LIKE SQL améliorée (comme dans PublicEnseignantsView)
   const searchInTeacher = (teacher, searchTerm) => {
     if (!searchTerm) return true;
 
     const normalizedSearch = normalizeSearchText(searchTerm);
 
-    // Recherche dans tous les champs
-    return (
-      normalizeSearchText(teacher.nom || "").includes(normalizedSearch) ||
-      normalizeSearchText(teacher.im || "").includes(normalizedSearch) ||
-      normalizeSearchText(teacher.diplome || "").includes(normalizedSearch) ||
-      normalizeSearchText(teacher.specialite || "").includes(
-        normalizedSearch
-      ) ||
-      normalizeSearchText(teacher.corps || "").includes(normalizedSearch) ||
-      normalizeSearchText(teacher.titre || "").includes(normalizedSearch) ||
-      normalizeSearchText(teacher.faculte_nom || "").includes(
-        normalizedSearch
-      ) ||
-      (teacher.sexe &&
-        normalizeSearchText(teacher.sexe).includes(normalizedSearch))
+    // ✅ CORRECTION: Normaliser tous les champs pour la recherche
+    const normalizedFields = {
+      nom: normalizeSearchText(teacher.nom || ""),
+      im: normalizeSearchText(teacher.im || ""),
+      diplome: normalizeSearchText(teacher.diplome || ""),
+      specialite: normalizeSearchText(teacher.specialite || ""),
+      corps: normalizeSearchText(teacher.corps || ""),
+      titre: normalizeSearchText(teacher.titre || ""),
+      faculte_nom: normalizeSearchText(teacher.faculte_nom || ""),
+      sexe: normalizeSearchText(teacher.sexe || ""),
+    };
+
+    // ✅ CORRECTION: Recherche dans tous les champs normalisés
+    return Object.values(normalizedFields).some((field) =>
+      field.includes(normalizedSearch)
     );
   };
 
@@ -610,7 +691,7 @@ const EnseignantsView = () => {
     if (!Array.isArray(allTeachers)) return [];
 
     return allTeachers.filter((teacher) => {
-      // ✅ Recherche LIKE SQL
+      // ✅ Recherche LIKE SQL améliorée
       const matchesSearch = searchInTeacher(teacher, recapFilter.search);
 
       // Filtre Faculté
@@ -620,12 +701,17 @@ const EnseignantsView = () => {
 
       // Filtre Corps
       const matchesCorps =
-        !recapFilter.corps || (teacher.corps || "") === recapFilter.corps;
+        !recapFilter.corps ||
+        normalizeText(teacher.corps || teacher._original_corps || "") ===
+          normalizeText(recapFilter.corps || "");
 
       // Filtre Titre
+      const titreForCompare =
+        teacher.titre || teacher._original_titre || "SANS TITRE";
       const matchesTitre =
         !recapFilter.titre ||
-        normalizeText(teacher.titre || "") === normalizeText(recapFilter.titre);
+        normalizeText(titreForCompare) ===
+          normalizeText(recapFilter.titre || "");
 
       return matchesSearch && matchesFaculte && matchesCorps && matchesTitre;
     });
@@ -656,17 +742,21 @@ const EnseignantsView = () => {
     if (!Array.isArray(teachers)) return [];
 
     return teachers.filter((t) => {
-      // ✅ Recherche LIKE SQL
+      // ✅ Recherche LIKE SQL améliorée
       const matchesSearch = searchInTeacher(t, faculteFilter.search);
 
       // Filtre Corps
       const matchesCorps =
-        !faculteFilter.corps || (t?.corps ?? "") === faculteFilter.corps;
+        !faculteFilter.corps ||
+        normalizeText(t?.corps || t?._original_corps || "") ===
+          normalizeText(faculteFilter.corps || "");
 
       // Filtre Titre
+      const titreForCompare = t?.titre || t?._original_titre || "SANS TITRE";
       const matchesTitre =
         !faculteFilter.titre ||
-        normalizeText(t?.titre ?? "") === normalizeText(faculteFilter.titre);
+        normalizeText(titreForCompare) ===
+          normalizeText(faculteFilter.titre || "");
 
       return matchesSearch && matchesCorps && matchesTitre;
     });
@@ -691,25 +781,17 @@ const EnseignantsView = () => {
     return sorted;
   }, [filteredFaculteTeachers, faculteSort]);
 
-  // ✅ Pagination RECAP
-  const recapCurrentPage = useMemo(
-    () =>
-      Math.max(
-        1,
-        Math.min(
-          currentPage,
-          Math.ceil(sortedRecapTeachers.length / itemsPerPage)
-        )
-      ),
-    [currentPage, sortedRecapTeachers.length, itemsPerPage]
-  );
-  const recapIndexStart = (recapCurrentPage - 1) * itemsPerPage;
-  const recapIndexEnd = recapIndexStart + itemsPerPage;
+  // ✅ Pagination RECAP (utilise des states dédiés)
+  // `recapCurrentPage` et `recapItemsPerPage` sont des states définis plus haut
+  const recapIndexStart = (recapCurrentPage - 1) * recapItemsPerPage;
+  const recapIndexEnd = recapIndexStart + recapItemsPerPage;
   const paginatedRecapTeachers = sortedRecapTeachers.slice(
     recapIndexStart,
     recapIndexEnd
   );
-  const recapTotalPages = Math.ceil(sortedRecapTeachers.length / itemsPerPage);
+  const recapTotalPages = Math.ceil(
+    sortedRecapTeachers.length / recapItemsPerPage
+  );
 
   // ✅ Pagination FACULTE
   const faculteCurrentPage = useMemo(
@@ -735,17 +817,29 @@ const EnseignantsView = () => {
 
   // ✅ Calcul des statistiques RECAP
   const recapData = useMemo(() => {
-    if (!selectedUniv) return null;
+    if (!selectedUniv) return {};
 
     const source = Array.isArray(allTeachers) ? allTeachers : [];
-    const stats = {};
 
-    etablissements.forEach((etab) => {
+    // Construire la liste des facultés à partir des établissements connus
+    // et des noms de faculté présents dans les enseignants (au cas où
+    // `etablissements` n'est pas encore chargé).
+    const facSet = new Set();
+    etablissements.forEach((e) => {
+      if (e?.nom) facSet.add(e.nom);
+    });
+    source.forEach((t) => {
+      const name = t?.faculte_nom || "Non assigné";
+      facSet.add(name);
+    });
+
+    const stats = {};
+    Array.from(facSet).forEach((fac) => {
       const enseignantsEtab = source.filter(
-        (t) => String(t?.etablissement_id) === String(etab.id)
+        (t) => (t?.faculte_nom || "Non assigné") === fac
       );
 
-      stats[etab.nom] = {
+      stats[fac] = {
         AES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "AES").length,
         MC: enseignantsEtab.filter((t) => (t?.corps ?? "") === "MC").length,
         PES: enseignantsEtab.filter((t) => (t?.corps ?? "") === "PES").length,
@@ -759,29 +853,57 @@ const EnseignantsView = () => {
     return stats;
   }, [selectedUniv, etablissements, allTeachers]);
 
-  // ✅ Groupe les enseignants par titre pour l'affichage
+  // ✅ CORRECTION: Fonction améliorée pour grouper les enseignants
   const groupTeachersByTitre = (teacherList) => {
     const groups = {};
 
     if (!Array.isArray(teacherList)) return groups;
 
     teacherList.forEach((teacher) => {
-      const titre = teacher?.titre || "Sans titre";
-      if (!groups[titre]) {
-        groups[titre] = [];
+      // ✅ GESTION AMÉLIORÉE: Si pas de titre, utiliser une valeur par défaut
+      let titre = teacher?.titre;
+
+      if (!titre || titre.trim() === "") {
+        // Vérifier si on a des données originales
+        titre = teacher?._original_titre || "SANS TITRE";
       }
-      groups[titre].push(teacher);
+
+      // Normaliser le titre pour le regroupement
+      const titreNormalise = normalizeText(titre);
+      const titreFinal = titreNormalise || "SANS TITRE";
+
+      if (!groups[titreFinal]) {
+        groups[titreFinal] = [];
+      }
+      groups[titreFinal].push(teacher);
     });
 
     // Trier les titres selon l'ordre défini
     const orderedGroups = {};
-    const allTitres = [...TITRES.map((t) => normalizeText(t)), "SANS TITRE"];
 
+    // ✅ AJOUTER "SANS TITRE" à la liste des titres pour l'affichage
+    const allTitres = [
+      ...TITRES.map((t) => normalizeText(t)),
+      "SANS TITRE",
+      "AUTRES TITRES", // Pour les titres non reconnus
+    ];
+
+    // D'abord afficher les titres définis dans TITRES
     allTitres.forEach((titre) => {
       if (groups[titre]) {
         orderedGroups[titre] = groups[titre];
+        delete groups[titre];
       }
     });
+
+    // Ensuite, ajouter les autres titres non reconnus
+    const remainingTitres = Object.keys(groups);
+    if (remainingTitres.length > 0) {
+      orderedGroups["AUTRES TITRES"] = [];
+      remainingTitres.forEach((titre) => {
+        orderedGroups["AUTRES TITRES"].push(...groups[titre]);
+      });
+    }
 
     return orderedGroups;
   };
@@ -952,8 +1074,29 @@ const EnseignantsView = () => {
 
   // --- ACTIONS ENSEIGNANT ---
   const handleAddTeacher = async () => {
-    if (!newTeacher.nom || !newTeacher.im) {
+    // Valider que tous les champs sont remplis
+    if (
+      !newTeacher.nom ||
+      !newTeacher.im ||
+      !newTeacher.date_naissance ||
+      !newTeacher.corps ||
+      !newTeacher.diplome ||
+      !newTeacher.specialite ||
+      !newTeacher.titre
+    ) {
       showToast("Veuillez remplir tous les champs obligatoires", "error");
+      return;
+    }
+
+    // Interdire les chiffres dans le nom
+    if (/\d/.test(newTeacher.nom)) {
+      showToast("Le nom ne doit pas contenir de chiffres", "error");
+      return;
+    }
+
+    // Interdire les chiffres dans le diplôme
+    if (/\d/.test(newTeacher.diplome)) {
+      showToast("Le diplôme ne doit pas contenir de chiffres", "error");
       return;
     }
 
@@ -994,6 +1137,8 @@ const EnseignantsView = () => {
           date_naissance:
             createdObj?.date_naissance ?? teacherData.date_naissance ?? "",
           etablissement_id: createdObj?.etablissement_id ?? etablissement.id,
+          _original_titre: teacherData.categorie,
+          _original_corps: teacherData.corps,
         },
       ]);
 
@@ -1058,8 +1203,29 @@ const EnseignantsView = () => {
   };
 
   const handleUpdateTeacher = async () => {
-    if (!editTeacher?.nom || !editTeacher?.im) {
+    // Valider que tous les champs sont remplis
+    if (
+      !editTeacher?.nom ||
+      !editTeacher?.im ||
+      !editTeacher?.date_naissance ||
+      !editTeacher?.corps ||
+      !editTeacher?.diplome ||
+      !editTeacher?.specialite ||
+      !editTeacher?.titre
+    ) {
       showToast("Veuillez remplir tous les champs obligatoires", "error");
+      return;
+    }
+
+    // Interdire les chiffres dans le nom
+    if (/\d/.test(editTeacher?.nom || "")) {
+      showToast("Le nom ne doit pas contenir de chiffres", "error");
+      return;
+    }
+
+    // Interdire les chiffres dans le diplôme
+    if (/\d/.test(editTeacher?.diplome || "")) {
+      showToast("Le diplôme ne doit pas contenir de chiffres", "error");
       return;
     }
 
@@ -1095,6 +1261,8 @@ const EnseignantsView = () => {
                   updatedObj?.date_naissance ??
                   teacherData.date_naissance ??
                   "",
+                _original_titre: teacherData.titre,
+                _original_corps: teacherData.corps,
               }
             : t
         )
@@ -1569,13 +1737,11 @@ const EnseignantsView = () => {
                   setCurrentPage(1);
                   setSearchTeacher("");
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === fac
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-600 hover:bg-blue-50"
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors text-gray-700 hover:bg-blue-50 ${
+                  activeTab === fac ? "bg-blue-600 text-white shadow-md" : ""
                 }`}
               >
-                {fac}
+                <span className="whitespace-normal break-words">{fac}</span>
               </button>
 
               <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1609,14 +1775,18 @@ const EnseignantsView = () => {
           <div className="space-y-8">
             {/* 1. Tableau Récapitulatif - Version compacte */}
             <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
-              <div className="px-4 py-3 text-center bg-blue-50 border-b">
-                <div className="text-sm font-bold text-blue-800">
-                  TABLEAU RÉCAPITULATIF DES ENSEIGNANTS PAR FACULTÉ
+              <div className="px-4 py-3 bg-blue-50 border-b">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-bold text-blue-800">
+                      TABLEAU RÉCAPITULATIF DES ENSEIGNANTS PAR FACULTÉ
+                    </div>
+                    <div className="mt-1 text-xs font-semibold text-gray-700">
+                      {selectedUniv.nom.toUpperCase()}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-600">ANNÉE 2025</div>
+                  </div>
                 </div>
-                <div className="mt-1 text-xs font-semibold text-gray-700">
-                  {selectedUniv.nom.toUpperCase()}
-                </div>
-                <div className="mt-1 text-xs text-gray-600">ANNÉE 2025</div>
               </div>
 
               {/* Tableau Récapitulatif compact */}
@@ -1759,13 +1929,26 @@ const EnseignantsView = () => {
             {/* 3. Liste détaillée des enseignants - Tableau RECAP */}
             <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
               <div className="px-6 py-4 bg-blue-50 border-b">
-                <h3 className="text-sm font-bold text-blue-800 uppercase">
-                  LISTE DÉTAILLÉE DE TOUS LES ENSEIGNANTS
-                </h3>
-                <p className="text-xs text-gray-600 mt-1">
-                  Filtrez et triez la liste complète des enseignants de
-                  l&apos;université
-                </p>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-blue-800 uppercase">
+                      LISTE DÉTAILLÉE DE TOUS LES ENSEIGNANTS
+                    </h3>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Filtrez et triez la liste complète des enseignants de
+                      l&apos;université
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-600">
+                      Afficher éléments:
+                    </span>
+                    <span className="inline-block bg-white border border-gray-200 px-2 py-1 rounded text-xs font-semibold text-gray-800">
+                      {sortedRecapTeachers.length}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Barre de filtres */}
@@ -1862,8 +2045,9 @@ const EnseignantsView = () => {
                       <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
                         PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
                       </option>
-                      <option value="PROFESSEUR ÉMMERITE">
-                        PROFESSEUR ÉMMERITE
+                      {/* CORRECTION: "ÉMÉRITE" au lieu de "ÉMMERITE" */}
+                      <option value="PROFESSEUR ÉMÉRITE">
+                        PROFESSEUR ÉMÉRITE
                       </option>
                       <option value="PROFESSEUR TITULAIRE">
                         PROFESSEUR TITULAIRE
@@ -1893,6 +2077,27 @@ const EnseignantsView = () => {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Compteur affichage sous les filtres (RECAP) */}
+              <div className="px-4 pb-4 bg-gray-50">
+                <div className="flex justify-end">
+                  <div className="text-sm text-gray-700">
+                    Affichage de{" "}
+                    <span className="font-medium">
+                      {sortedRecapTeachers.length > 0 ? recapIndexStart + 1 : 0}
+                    </span>{" "}
+                    à{" "}
+                    <span className="font-medium">
+                      {Math.min(recapIndexEnd, sortedRecapTeachers.length)}
+                    </span>{" "}
+                    sur{" "}
+                    <span className="font-medium">
+                      {sortedRecapTeachers.length}
+                    </span>{" "}
+                    enseignants
+                  </div>
+                </div>
               </div>
 
               {/* Tableau des enseignants RECAP */}
@@ -2052,35 +2257,36 @@ const EnseignantsView = () => {
                   </tbody>
                 </table>
 
-                {/* Pagination RECAP */}
-                {sortedRecapTeachers.length > 0 && (
-                  <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span>Éléments par page:</span>
-                      <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                          setItemsPerPage(Number(e.target.value));
-                          setCurrentPage(1);
-                        }}
-                        className="px-2 py-1 border rounded-md text-xs bg-white"
-                      >
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                        <option value={150}>150</option>
-                        <option value={200}>200</option>
-                      </select>
-                      <span className="text-gray-500">
-                        {recapIndexStart + 1}-
-                        {Math.min(recapIndexEnd, sortedRecapTeachers.length)}{" "}
-                        sur {sortedRecapTeachers.length}
-                      </span>
-                    </div>
+                {/* Pied du tableau avec pagination */}
+                <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
+                  {/* ✅ NOUVEAU: Compteur d'affichage */}
+                  <div className="text-sm text-gray-700">
+                    Affichage de{" "}
+                    <span className="font-medium">
+                      {sortedRecapTeachers.length > 0
+                        ? (recapCurrentPage - 1) * recapItemsPerPage + 1
+                        : 0}
+                    </span>{" "}
+                    à{" "}
+                    <span className="font-medium">
+                      {Math.min(
+                        recapCurrentPage * recapItemsPerPage,
+                        sortedRecapTeachers.length
+                      )}
+                    </span>{" "}
+                    sur{" "}
+                    <span className="font-medium">
+                      {sortedRecapTeachers.length}
+                    </span>{" "}
+                    enseignants
+                  </div>
 
+                  {/* Contrôles de pagination */}
+                  {recapTotalPages > 1 && (
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() =>
-                          setCurrentPage((p) => Math.max(1, p - 1))
+                          setRecapCurrentPage((p) => Math.max(1, p - 1))
                         }
                         disabled={recapCurrentPage === 1}
                         className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
@@ -2129,7 +2335,7 @@ const EnseignantsView = () => {
                           ) : (
                             <button
                               key={page}
-                              onClick={() => setCurrentPage(page)}
+                              onClick={() => setRecapCurrentPage(page)}
                               className={`px-3 py-1 text-sm border rounded-md ${
                                 recapCurrentPage === page
                                   ? "bg-blue-600 text-white border-blue-600"
@@ -2144,7 +2350,7 @@ const EnseignantsView = () => {
 
                       <button
                         onClick={() =>
-                          setCurrentPage((p) =>
+                          setRecapCurrentPage((p) =>
                             Math.min(recapTotalPages, p + 1)
                           )
                         }
@@ -2154,8 +2360,8 @@ const EnseignantsView = () => {
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -2166,6 +2372,7 @@ const EnseignantsView = () => {
           <div className="space-y-4">
             {/* Barre de recherche et bouton d'ajout */}
             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex justify-end mb-3"></div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -2227,7 +2434,7 @@ const EnseignantsView = () => {
                   >
                     <option value="">Tous les titres</option>
                     <option value="ASSISTANT D'ENSEIGNEMENT SUPERIEUR">
-                      ASSITANT D'ENSEIGNEMENT SUPERIEUR
+                      ASSISTANT D'ENSEIGNEMENT SUPERIEUR
                     </option>
                     <option value="MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR">
                       MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR
@@ -2235,8 +2442,8 @@ const EnseignantsView = () => {
                     <option value="PROFESSEUR D'ENSEIGNEMENT SUPERIEUR">
                       PROFESSEUR D'ENSEIGNEMENT SUPERIEUR
                     </option>
-                    <option value="PROFESSEUR ÉMMERITE">
-                      PROFESSEUR EMMERITE
+                    <option value="PROFESSEUR ÉMÉRITE">
+                      PROFESSEUR ÉMÉRITE
                     </option>
                     <option value="PROFESSEUR TITULAIRE">
                       PROFESSEUR TITULAIRE
@@ -2245,12 +2452,32 @@ const EnseignantsView = () => {
                 </div>
 
                 <div className="flex items-end">
-                  <button
-                    onClick={() => setShowModalTeacher(true)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors w-full justify-center"
-                  >
-                    <Plus size={18} /> Ajouter Enseignant
-                  </button>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-xs text-gray-600 whitespace-nowrap">
+                      Par page:
+                    </span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="px-2 py-1.5 border border-gray-300 rounded-md text-xs bg-white focus:ring-1 focus:ring-blue-500 outline-none"
+                    >
+                      <option value={10}>10</option>
+                      <option value={30}>30</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={200}>200</option>
+                    </select>
+
+                    <button
+                      onClick={() => setShowModalTeacher(true)}
+                      className="ml-auto flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+                    >
+                      <Plus size={18} /> Ajouter Enseignant
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -2275,7 +2502,32 @@ const EnseignantsView = () => {
               )}
             </div>
 
-            {/* Tableau des enseignants */}
+            {/* Compteur d'affichage - EN HAUT */}
+            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-700">
+                  Affichage de{" "}
+                  <span className="font-medium">
+                    {sortedFaculteTeachers.length > 0
+                      ? faculteIndexStart + 1
+                      : 0}
+                  </span>{" "}
+                  à{" "}
+                  <span className="font-medium">
+                    {Math.min(faculteIndexEnd, sortedFaculteTeachers.length)}
+                  </span>{" "}
+                  sur{" "}
+                  <span className="font-medium">
+                    {sortedFaculteTeachers.length}
+                  </span>{" "}
+                  enseignants
+                </div>
+
+                {/* Bouton supprimé - "Voir tous les enseignants" */}
+              </div>
+            </div>
+
+            {/* Tableau des enseignants - SANS DÉFILEMENT VERTICAL */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               {loading ? (
                 <div className="py-20 flex justify-center">
@@ -2421,93 +2673,97 @@ const EnseignantsView = () => {
                 </div>
               )}
 
-              {/* PAGINATION */}
+              {/* PAGINATION - EN BAS */}
               {sortedFaculteTeachers.length > 0 && (
-                <div className="flex items-center justify-between px-2 py-2 border-t bg-gray-50">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span>Éléments par page:</span>
-                    <select
-                      value={itemsPerPage}
-                      onChange={(e) => {
-                        setItemsPerPage(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="px-2 py-1 border rounded-md text-xs bg-white"
-                    >
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                      <option value={150}>150</option>
-                      <option value={200}>200</option>
-                    </select>
-                    <span className="text-gray-500">
-                      {faculteIndexStart + 1}-
-                      {Math.min(faculteIndexEnd, sortedFaculteTeachers.length)}{" "}
-                      sur {sortedFaculteTeachers.length}
-                    </span>
+                <div className="p-4 border-t bg-gray-50 flex items-center justify-between">
+                  {/* Compteur d'affichage */}
+                  <div className="text-sm text-gray-700">
+                    Page{" "}
+                    <span className="font-medium">{faculteCurrentPage}</span>{" "}
+                    sur <span className="font-medium">{faculteTotalPages}</span>{" "}
+                    • Affichage de{" "}
+                    <span className="font-medium">
+                      {sortedFaculteTeachers.length > 0
+                        ? faculteIndexStart + 1
+                        : 0}
+                    </span>{" "}
+                    à{" "}
+                    <span className="font-medium">
+                      {Math.min(faculteIndexEnd, sortedFaculteTeachers.length)}
+                    </span>{" "}
+                    sur{" "}
+                    <span className="font-medium">
+                      {sortedFaculteTeachers.length}
+                    </span>{" "}
+                    enseignants
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  {/* Contrôles de pagination */}
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={faculteCurrentPage === 1}
-                      className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
+                      className="px-3 py-1.5 border rounded-md disabled:opacity-50 hover:bg-gray-100 text-sm flex items-center gap-1"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-4 h-4" /> Précédent
                     </button>
 
-                    {(() => {
-                      const pages = [];
-                      const maxVisible = 5;
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const pages = [];
+                        const maxVisible = 5;
 
-                      if (faculteTotalPages <= maxVisible + 2) {
-                        for (let i = 1; i <= faculteTotalPages; i++)
-                          pages.push(i);
-                      } else {
-                        pages.push(1);
+                        if (faculteTotalPages <= maxVisible + 2) {
+                          for (let i = 1; i <= faculteTotalPages; i++)
+                            pages.push(i);
+                        } else {
+                          pages.push(1);
 
-                        let startPage = Math.max(2, faculteCurrentPage - 2);
-                        let endPage = Math.min(
-                          faculteTotalPages - 1,
-                          faculteCurrentPage + 2
+                          let startPage = Math.max(2, faculteCurrentPage - 2);
+                          let endPage = Math.min(
+                            faculteTotalPages - 1,
+                            faculteCurrentPage + 2
+                          );
+
+                          if (faculteCurrentPage <= 3) endPage = maxVisible;
+                          if (faculteCurrentPage >= faculteTotalPages - 2)
+                            startPage = faculteTotalPages - maxVisible + 1;
+
+                          if (startPage > 2) pages.push("...");
+
+                          for (let i = startPage; i <= endPage; i++)
+                            pages.push(i);
+
+                          if (endPage < faculteTotalPages - 1)
+                            pages.push("...");
+
+                          pages.push(faculteTotalPages);
+                        }
+
+                        return pages.map((page, idx) =>
+                          page === "..." ? (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="px-2 text-xs text-gray-500"
+                            >
+                              ...
+                            </span>
+                          ) : (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`px-3 py-1 text-sm border rounded-md min-w-[36px] ${
+                                faculteCurrentPage === page
+                                  ? "bg-blue-600 text-white border-blue-600"
+                                  : "bg-white hover:bg-gray-50"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          )
                         );
-
-                        if (faculteCurrentPage <= 3) endPage = maxVisible;
-                        if (faculteCurrentPage >= faculteTotalPages - 2)
-                          startPage = faculteTotalPages - maxVisible + 1;
-
-                        if (startPage > 2) pages.push("...");
-
-                        for (let i = startPage; i <= endPage; i++)
-                          pages.push(i);
-
-                        if (endPage < faculteTotalPages - 1) pages.push("...");
-
-                        pages.push(faculteTotalPages);
-                      }
-
-                      return pages.map((page, idx) =>
-                        page === "..." ? (
-                          <span
-                            key={`ellipsis-${idx}`}
-                            className="px-2 text-xs text-gray-500"
-                          >
-                            ...
-                          </span>
-                        ) : (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            className={`px-3 py-1 text-sm border rounded-md ${
-                              faculteCurrentPage === page
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white hover:bg-gray-50"
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        )
-                      );
-                    })()}
+                      })()}
+                    </div>
 
                     <button
                       onClick={() =>
@@ -2519,9 +2775,9 @@ const EnseignantsView = () => {
                         faculteCurrentPage === faculteTotalPages ||
                         faculteTotalPages === 0
                       }
-                      className="p-2 border rounded-md disabled:opacity-50 hover:bg-gray-100"
+                      className="px-3 py-1.5 border rounded-md disabled:opacity-50 hover:bg-gray-100 text-sm flex items-center gap-1"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      Suivant <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -2671,7 +2927,7 @@ const EnseignantsView = () => {
                   onChange={(e) =>
                     setNewTeacher({
                       ...newTeacher,
-                      nom: e.target.value,
+                      nom: e.target.value.replace(/\d/g, ""),
                     })
                   }
                   placeholder="Nom Prénom"
@@ -2735,6 +2991,7 @@ const EnseignantsView = () => {
                   }
                   placeholder="JJ/MM/AAAA"
                   maxLength={10}
+                  required
                 />
               </div>
             </div>
@@ -2805,9 +3062,13 @@ const EnseignantsView = () => {
                     className="pl-9 w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none"
                     value={newTeacher.diplome}
                     onChange={(e) =>
-                      setNewTeacher({ ...newTeacher, diplome: e.target.value })
+                      setNewTeacher({
+                        ...newTeacher,
+                        diplome: e.target.value.replace(/\d/g, ""),
+                      })
                     }
                     placeholder="Ex: Doctorat"
+                    required
                   />
                 </div>
               </div>
@@ -2829,6 +3090,7 @@ const EnseignantsView = () => {
                       })
                     }
                     placeholder="Ex: Intelligence Artificielle"
+                    required
                   />
                 </div>
               </div>
@@ -2980,7 +3242,7 @@ const EnseignantsView = () => {
                   onChange={(e) =>
                     setEditTeacher({
                       ...editTeacher,
-                      nom: e.target.value,
+                      nom: e.target.value.replace(/\d/g, ""),
                     })
                   }
                   required
@@ -3042,6 +3304,7 @@ const EnseignantsView = () => {
                   }
                   placeholder="JJ/MM/AAAA"
                   maxLength={10}
+                  required
                 />
               </div>
             </div>
@@ -3117,9 +3380,10 @@ const EnseignantsView = () => {
                     onChange={(e) =>
                       setEditTeacher({
                         ...editTeacher,
-                        diplome: e.target.value,
+                        diplome: e.target.value.replace(/\d/g, ""),
                       })
                     }
+                    required
                   />
                 </div>
               </div>
@@ -3140,6 +3404,7 @@ const EnseignantsView = () => {
                         specialite: e.target.value,
                       })
                     }
+                    required
                   />
                 </div>
               </div>

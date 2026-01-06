@@ -803,7 +803,7 @@ const PublicEnseignantsView = () => {
       {/* --- FOOTER --- */}
       <footer className="w-full text-center py-6 mt-auto border-t border-gray-200 bg-white">
         <div className="text-gray-500 text-xs font-medium">
-          © daaq-mesupres 2025
+          © daaq-mesupres 2026
         </div>
       </footer>
     </div>

@@ -9,12 +9,12 @@ const DashboardAgentView = ({ data }) => {
     tauxCompletion: 0,
   });
 
-  const [missionsRecentes, setMissionsRecentes] = useState([]);
+  // const [missionsRecentes, setMissionsRecentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAgentStats();
-    fetchRecentMissions();
+    // fetchRecentMissions();
   }, []);
 
   const fetchAgentStats = async () => {
@@ -37,31 +37,31 @@ const DashboardAgentView = ({ data }) => {
     }
   };
 
-  const fetchRecentMissions = async () => {
-    try {
-      const response = await API.get("/agent/missions/recent");
-      if (response.data.success) {
-        setMissionsRecentes(response.data.data);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des missions:", error);
-      // Données simulées en attendant l'API
-      setMissionsRecentes([
-        {
-          id: 1,
-          titre: "Surveillance Quartier",
-          statut: "En cours",
-          date: "2024-01-15",
-        },
-        {
-          id: 2,
-          titre: "Contrôle Routier",
-          statut: "Terminé",
-          date: "2024-01-14",
-        },
-      ]);
-    }
-  };
+  // const fetchRecentMissions = async () => {
+  //   try {
+  //     const response = await API.get("/agent/missions/recent");
+  //     if (response.data.success) {
+  //       setMissionsRecentes(response.data.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Erreur lors du chargement des missions:", error);
+  //     // Données simulées en attendant l'API
+  //     setMissionsRecentes([
+  //       {
+  //         id: 1,
+  //         titre: "Surveillance Quartier",
+  //         statut: "En cours",
+  //         date: "2024-01-15",
+  //       },
+  //       {
+  //         id: 2,
+  //         titre: "Contrôle Routier",
+  //         statut: "Terminé",
+  //         date: "2024-01-14",
+  //       },
+  //     ]);
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -144,7 +144,7 @@ const DashboardAgentView = ({ data }) => {
       {/* Missions récentes */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Missions Récentes</h2>
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           {missionsRecentes.map((mission) => (
             <div
               key={mission.id}
@@ -170,7 +170,7 @@ const DashboardAgentView = ({ data }) => {
               Aucune mission récente
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

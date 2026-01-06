@@ -101,7 +101,7 @@ const Sidebar = ({ currentView, onViewChange, collapsed, onToggle }) => {
       {/* Footer */}
       {!collapsed && (
         <div className="p-4 border-t border-gray-100 text-xs text-center text-gray-400">
-          &copy; daaq-mesupres 2025
+          &copy; daaq-mesupres 2026
         </div>
       )}
     </aside>

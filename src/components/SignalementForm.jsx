@@ -537,7 +537,7 @@ const WelcomePage = ({ language, setLanguage, setStep, navigate }) => {
       {/* COPYRIGHT - Largeur ajustée à max-w-7xl */}
       <div className="w-full max-w-7xl text-center mt-4">
         <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
 
@@ -689,7 +689,7 @@ const ChoiceStep = ({ language, setStep, setIsAnonymous }) => {
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
         <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
     </div>
@@ -844,7 +844,7 @@ const ProofStep = ({ language, setStep, setHasProof, isAnonymous }) => {
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
         <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
     </div>
@@ -1069,7 +1069,7 @@ const PersonalInfoStep = ({
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
         <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
     </div>
@@ -1363,7 +1363,7 @@ const CategoryStep = ({
 
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
-        <div className="text-gray-500 text-xs">© daaq-Mesupres 2025</div>
+        <div className="text-gray-500 text-xs">© daaq-Mesupres 2026</div>
       </div>
     </div>
   );
@@ -1669,7 +1669,7 @@ const UploadStep = ({
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
         <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
     </div>
@@ -1816,7 +1816,7 @@ const SuccessPage = ({ language, referenceCode, resetForm, navigate }) => {
       {/* COPYRIGHT */}
       <div className="w-full max-w-6xl text-center mt-2 md:mt-4">
         <div className="text-gray-500 text-[9px] md:text-xs">
-          copyright @ daaq-Mesupres 2025
+          copyright @ daaq-Mesupres 2026
         </div>
       </div>
     </div>

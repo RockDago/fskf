@@ -447,7 +447,7 @@ export default function DossierTracker() {
         </div>
 
         <div className="w-full text-center py-4 mt-auto">
-          <div className="text-gray-500 text-xs">© daaq-Mesupres 2025</div>
+          <div className="text-gray-500 text-xs">© daaq-Mesupres 2026</div>
         </div>
       </div>
     );
@@ -515,7 +515,7 @@ export default function DossierTracker() {
                       type="text"
                       value={reference}
                       onChange={handleReferenceChange}
-                      placeholder="Ex: REF-20251119-6AB2BF"
+                      placeholder="Ex: REF-20261119-6AB2BF"
                       className="w-full px-4 py-3.5 pl-12 text-lg border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#5e8f3e] focus:border-[#5e8f3e] transition-all outline-none font-bill"
                       onKeyPress={(e) => {
                         if (e.key === "Enter") handleRecherche();
@@ -553,7 +553,7 @@ export default function DossierTracker() {
         </div>
 
         <div className="w-full text-center py-4 mt-auto">
-          <div className="text-gray-500 text-xs">© daaq-Mesupres 2025</div>
+          <div className="text-gray-500 text-xs">© daaq-Mesupres 2026</div>
         </div>
       </div>
     );
@@ -1058,7 +1058,7 @@ export default function DossierTracker() {
       </div>
 
       <div className="w-full text-center py-4 mt-6">
-        <div className="text-gray-500 text-xs">© daaq-mesupres 2025</div>
+        <div className="text-gray-500 text-xs">© daaq-mesupres 2026</div>
       </div>
 
       {/* ✅ BULLE DE CHAT SUPPORT - Affiche uniquement quand dossier trouvé */}
