@@ -1,4 +1,3 @@
-/* eslint-disable default-case */
 import { useState, useEffect } from "react";
 import UserService from "../../services/userService";
 import {
@@ -23,7 +22,6 @@ import {
   EyeOff,
 } from "lucide-react";
 
-// Constantes
 const tabs = [
   { id: "agents", label: "Agents", icon: User, className: "w-4 h-4" },
   {
@@ -42,58 +40,35 @@ const STANDARD_ROLES = [
   { id: 2, name: "Agent", code: "agent" },
 ];
 
-// Fonction pour convertir string en tableau (comme dans Profile.jsx)
 const parseStringToArray = (value) => {
-  console.log("parseStringToArray input:", value, typeof value);
-
   if (Array.isArray(value)) {
-    console.log("Déjà un tableau, retourné:", value);
     return value;
   }
 
   if (!value || value === "") {
-    console.log("Valeur vide, retourne tableau vide");
     return [];
   }
 
-  // Si c'est une chaîne JSON, essayez de la parser
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
         const parsed = JSON.parse(trimmed);
-        console.log("JSON parsé:", parsed);
         return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        console.warn("Échec du parsing JSON:", trimmed, e);
-      }
+      } catch (e) {}
     }
 
-    // Sinon, séparer par virgule
     const result = value
       .split(",")
       .map((item) => item.trim())
       .filter((item) => item !== "");
-    console.log("Split par virgule:", result);
     return result;
   }
 
-  console.log("Type non géré:", typeof value, "retourne tableau vide");
   return [];
 };
 
-// Mapper formData vers format Laravel - CORRIGÉ
 const mapFormDataToPayload = (formData, includePassword = false) => {
-  console.log("mapFormDataToPayload input:", {
-    formData,
-    firstname: formData.firstname,
-    lastname: formData.lastname,
-    role: formData.role,
-    specialisations: formData.specialisations,
-    responsabilites: formData.responsabilites,
-  });
-
-  // S'assurer que ce sont toujours des tableaux (même vides)
   const specialisationsArray = Array.isArray(formData.specialisations)
     ? formData.specialisations
     : [];
@@ -102,17 +77,15 @@ const mapFormDataToPayload = (formData, includePassword = false) => {
     ? formData.responsabilites
     : [];
 
-  // CORRECTION: Convertir le rôle en minuscule pour correspondre au backend Laravel
   const role = formData.role ? formData.role.toLowerCase() : "agent";
 
-  // CORRECTION: Format compatible avec le modèle User
   const payload = {
-    name: `${formData.firstname || ""} ${formData.lastname || ""}`.trim(), // Pour compatibilité
+    name: `${formData.firstname || ""} ${formData.lastname || ""}`.trim(),
     first_name: formData.firstname || "",
     last_name: formData.lastname || "",
     email: formData.email || "",
-    phone: formData.telephone || "", // Utiliser 'phone' au lieu de 'telephone'
-    telephone: formData.telephone || "", // Garder aussi 'telephone' pour compatibilité
+    phone: formData.telephone || "",
+    telephone: formData.telephone || "",
     departement: formData.departement || "",
     username: formData.username || "",
     role: role,
@@ -127,7 +100,6 @@ const mapFormDataToPayload = (formData, includePassword = false) => {
     payload.password_confirmation = formData.passwordconfirmation;
   }
 
-  // Nettoyer les champs vides
   Object.keys(payload).forEach((key) => {
     if (
       payload[key] === "" ||
@@ -138,11 +110,9 @@ const mapFormDataToPayload = (formData, includePassword = false) => {
     }
   });
 
-  console.log("Payload envoyé au backend (corrigé):", payload);
   return payload;
 };
 
-// Fonction utilitaire pour afficher le nom du rôle
 const formatRoleName = (role) => {
   if (!role) return "Non défini";
   const r =
@@ -151,7 +121,6 @@ const formatRoleName = (role) => {
   return found ? found.name : role;
 };
 
-// Export CSV
 const exportToCSV = (users, filename) => {
   if (!users || users.length === 0) {
     alert("Aucune donnée à exporter");
@@ -210,7 +179,6 @@ const exportToCSV = (users, filename) => {
   document.body.removeChild(link);
 };
 
-// Indicateur de force du mot de passe
 function PasswordStrengthIndicator({ password, errors = {} }) {
   const criteria = [
     { label: "8 caractères minimum", met: password.length >= 8 },
@@ -266,7 +234,6 @@ function PasswordStrengthIndicator({ password, errors = {} }) {
   );
 }
 
-// Composant Toast pour afficher les messages normaux (en haut à droite)
 function ToastNotification({
   message,
   type = "error",
@@ -379,7 +346,6 @@ function ToastNotification({
   );
 }
 
-// Composant ConfirmationModal pour les confirmations (au centre)
 function ConfirmationModal({
   show,
   title,
@@ -503,28 +469,25 @@ const EquipeView = () => {
   const [showPasswordModalConfirm, setShowPasswordModalConfirm] =
     useState(false);
 
-  // États pour les toasts normaux
   const [toast, setToast] = useState({
     show: false,
     message: "",
-    type: "error", // error, success, warning, info
-    details: null, // Détails supplémentaires pour les erreurs
+    type: "error",
+    details: null,
   });
 
-  // États pour la confirmation de suppression
   const [confirmationModal, setConfirmationModal] = useState({
     show: false,
     title: "",
     message: "",
     userId: null,
-    action: null, // 'delete', 'toggleStatus', etc.
+    action: null,
   });
 
   useEffect(() => {
     fetchUsers();
   }, [activeTab]);
 
-  // Fonction pour afficher un toast normal (en haut à droite)
   const showToastMessage = (message, type = "error", details = null) => {
     setToast({
       show: true,
@@ -644,7 +607,6 @@ const EquipeView = () => {
 
       setUsers(normalizedUsers || []);
     } catch (err) {
-      console.error("Erreur chargement", err);
       setError("Impossible de charger les utilisateurs.");
       showToastMessage("Impossible de charger les utilisateurs.", "error");
       setUsers([]);
@@ -850,8 +812,6 @@ const EquipeView = () => {
     // Valider le département après le changement
     const errors = validateField("departement", defaultDepartement);
     setFormErrors((prev) => ({ ...prev, departement: errors.departement }));
-
-    console.log("Role changé:", { newRole, defaultDepartement });
   };
 
   // Garder l'ancienne méthode pour ajouter aux tableaux
@@ -930,13 +890,9 @@ const EquipeView = () => {
     setShowPassword(false);
     setShowConfirmPassword(false);
     setShowModal(true);
-
-    console.log("Modal création ouvert:", { defaultRole, defaultDept });
   };
 
   const openEditModal = (user) => {
-    console.log("Données utilisateur originales:", user);
-
     setIsEditing(true);
     setSelectedUser(user);
 
@@ -978,8 +934,6 @@ const EquipeView = () => {
     setShowPassword(false);
     setShowConfirmPassword(false);
     setShowModal(true);
-
-    console.log("Modal édition ouvert:", { userRole, userDepartement });
   };
 
   const closeModal = () => {
@@ -1081,13 +1035,6 @@ const EquipeView = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Formulaire avant envoi - formData:", formData);
-    console.log("Valeurs spécifiques:", {
-      firstname: formData.firstname,
-      lastname: formData.lastname,
-      email: formData.email,
-    });
-
     const action = e.nativeEvent.submitter?.dataset?.action;
 
     // Vérification d'unicité avant soumission (pour la création)
@@ -1104,10 +1051,6 @@ const EquipeView = () => {
         }));
 
         // Highlight l'utilisateur existant dans la liste
-        console.log(
-          "Utilisateurs existants avec cet email:",
-          existingEmailUsers
-        );
         return;
       }
 
@@ -1124,10 +1067,6 @@ const EquipeView = () => {
         }));
 
         // Highlight l'utilisateur existant dans la liste
-        console.log(
-          "Utilisateurs existants avec ce username:",
-          existingUsernameUsers
-        );
         return;
       }
     }
@@ -1181,7 +1120,6 @@ const EquipeView = () => {
 
       if (!isEditing) {
         const payload = mapFormDataToPayload(formData, true);
-        console.log("Payload création avec notification:", payload);
 
         // Vérifier que les champs requis sont présents
         if (!payload.first_name || !payload.last_name) {
@@ -1191,8 +1129,6 @@ const EquipeView = () => {
 
         // ⚠️ CORRECTION ICI : Utiliser UserService.createUserWithNotification
         result = await UserService.createUserWithNotification(payload);
-
-        console.log("Résultat création:", result);
 
         if (result && result.success) {
           showToastMessage(
@@ -1247,7 +1183,6 @@ const EquipeView = () => {
 
       if (action === "info") {
         const payload = mapFormDataToPayload(formData, false);
-        console.log("Payload mise à jour:", payload);
 
         // Pour l'édition, utiliser l'ancienne méthode
         result = await UserService.updateUser(selectedUser.id, payload);
@@ -1263,8 +1198,6 @@ const EquipeView = () => {
         }
       }
     } catch (err) {
-      console.error("Erreur complète:", err);
-
       // Utiliser le système de gestion d'erreurs de UserService
       let errorMessage = "Une erreur est survenue";
 
@@ -1316,7 +1249,6 @@ const EquipeView = () => {
       ) {
         errorMessage =
           "Erreur technique : La fonction de création avec notification n'est pas disponible. Contactez l'administrateur.";
-        console.error("Fonction manquante dans UserService:", err);
       } else if (err.message) {
         errorMessage = err.message;
       } else if (err.response?.data?.message) {
@@ -1377,23 +1309,18 @@ const EquipeView = () => {
 
   const getAvailableDepartements = () => {
     const role = formData.role;
-    console.log("getAvailableDepartements appelé avec rôle:", role);
 
     if (role === "agent") {
-      console.log("Départements pour agent:", departements);
       return departements;
     }
     if (role === "admin") {
-      console.log("Départements pour admin:", departementsAdmin);
       return departementsAdmin;
     }
     if (role === "investigateur") {
       // Si vous avez une liste spécifique pour les investigateurs
-      console.log("Départements pour investigateur:", departements);
       return departements;
     }
 
-    console.log("Rôle non reconnu, retourne tableau vide");
     return [];
   };
 

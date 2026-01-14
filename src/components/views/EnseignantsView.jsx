@@ -605,7 +605,7 @@ const EnseignantsView = () => {
         const params = {
           universite_id: selectedUniv.id,
           etablissement_id: etablissement.id,
-          per_page: 200,
+          per_page: 10000,
         };
 
         const response = await enseignantService.getAll(params);
@@ -1203,7 +1203,6 @@ const EnseignantsView = () => {
   };
 
   const handleUpdateTeacher = async () => {
-    // Valider que tous les champs sont remplis
     if (
       !editTeacher?.nom ||
       !editTeacher?.im ||
@@ -1216,65 +1215,116 @@ const EnseignantsView = () => {
       showToast("Veuillez remplir tous les champs obligatoires", "error");
       return;
     }
-
-    // Interdire les chiffres dans le nom
+    if (editTeacher.im.length !== 6) {
+      showToast("L'IM doit comporter exactement 6 chiffres", "error");
+      return;
+    }
     if (/\d/.test(editTeacher?.nom || "")) {
       showToast("Le nom ne doit pas contenir de chiffres", "error");
       return;
     }
-
-    // Interdire les chiffres dans le diplôme
     if (/\d/.test(editTeacher?.diplome || "")) {
       showToast("Le diplôme ne doit pas contenir de chiffres", "error");
       return;
     }
-
     try {
+      const corpsNormalized = editTeacher.corps.toUpperCase();
+      const titreCorrige = getTitreFromCorps(corpsNormalized);
       const teacherData = {
-        ...editTeacher,
+        nom: editTeacher.nom.trim(),
+        sexe: editTeacher.sexe.toUpperCase(),
+        im: editTeacher.im.trim(),
         date_naissance: convertToISODate(editTeacher.date_naissance),
+        corps: corpsNormalized,
+        diplome: editTeacher.diplome.trim(),
+        specialite: editTeacher.specialite.trim(),
+        categorie: titreCorrige,
+        universite_id: selectedUniv.id,
+        etablissement_id:
+          selectedTeacher.etablissement_id || selectedTeacher.etablissementid,
       };
-
       const updated = await enseignantService.update(
         selectedTeacher.id,
         teacherData
       );
       const updatedObj = updated?.data ?? updated;
-
+      const titreNormalise = normalizeText(
+        updatedObj?.categorie ?? teacherData.categorie
+      );
+      const corpsNormalise = normalizeText(
+        updatedObj?.corps ?? teacherData.corps
+      );
       setTeachers((prev) =>
         prev.map((t) =>
           t.id === selectedTeacher.id
             ? {
                 ...t,
                 ...updatedObj,
-                nom: updatedObj?.nom ?? teacherData.nom ?? "",
-                im: updatedObj?.im ?? teacherData.im ?? "",
-                diplome: updatedObj?.diplome ?? teacherData.diplome ?? "",
-                specialite:
-                  updatedObj?.specialite ?? teacherData.specialite ?? "",
-                titre: normalizeText(
-                  updatedObj?.categorie ?? teacherData.titre
-                ),
-                corps: normalizeText(updatedObj?.corps ?? teacherData.corps),
+                nom: updatedObj?.nom ?? teacherData.nom,
+                im: updatedObj?.im ?? teacherData.im,
+                diplome: updatedObj?.diplome ?? teacherData.diplome,
+                specialite: updatedObj?.specialite ?? teacherData.specialite,
+                titre: titreNormalise,
+                corps: corpsNormalise,
                 sexe: normalizeText(updatedObj?.sexe ?? teacherData.sexe),
                 date_naissance:
-                  updatedObj?.date_naissance ??
-                  teacherData.date_naissance ??
-                  "",
-                _original_titre: teacherData.titre,
-                _original_corps: teacherData.corps,
+                  updatedObj?.date_naissance ?? teacherData.date_naissance,
+                etablissementid:
+                  updatedObj?.etablissement_id ?? teacherData.etablissement_id,
+                facultenom: t.facultenom,
+                originaltitre: updatedObj?.categorie ?? teacherData.categorie,
+                originalcorps: updatedObj?.corps ?? teacherData.corps,
               }
             : t
         )
       );
-
+      setAllTeachers((prev) =>
+        prev.map((t) =>
+          t.id === selectedTeacher.id
+            ? {
+                ...t,
+                ...updatedObj,
+                nom: updatedObj?.nom ?? teacherData.nom,
+                im: updatedObj?.im ?? teacherData.im,
+                diplome: updatedObj?.diplome ?? teacherData.diplome,
+                specialite: updatedObj?.specialite ?? teacherData.specialite,
+                titre: titreNormalise,
+                corps: corpsNormalise,
+                sexe: normalizeText(updatedObj?.sexe ?? teacherData.sexe),
+                date_naissance:
+                  updatedObj?.date_naissance ?? teacherData.date_naissance,
+                etablissementid:
+                  updatedObj?.etablissement_id ?? teacherData.etablissement_id,
+                facultenom: t.facultenom,
+                originaltitre: updatedObj?.categorie ?? teacherData.categorie,
+                originalcorps: updatedObj?.corps ?? teacherData.corps,
+              }
+            : t
+        )
+      );
       setShowModalEditTeacher(false);
       setSelectedTeacher(null);
       setEditTeacher(null);
       showToast("Enseignant modifié avec succès", "success");
     } catch (err) {
-      console.error("Erreur lors de la modification de l'enseignant:", err);
-      showToast("Erreur lors de la modification de l'enseignant", "error");
+      console.error("Erreur:", err);
+      if (err.response?.data?.errors) {
+        const errorMessages = Object.entries(err.response.data.errors)
+          .map(
+            ([field, messages]) =>
+              `${field}: ${
+                Array.isArray(messages) ? messages.join(", ") : messages
+              }`
+          )
+          .join("\n");
+        showToast(`Erreurs de validation:\n${errorMessages}`, "error");
+        return;
+      }
+      if (err.response?.data?.message) {
+        showToast(err.response.data.message, "error");
+        return;
+      }
+      showToast("Erreur lors de la modification", "error");
     }
   };
 
@@ -3452,4 +3502,14 @@ const EnseignantsView = () => {
   );
 };
 
-export default EnseignantsView;
+export default EnseignantsView; // ✅ CORRECTION: Fonction pour synchroniser le titre avec le corps
+const getTitreFromCorps = (corps) => {
+  const mapping = {
+    AES: "ASSISTANT D'ENSEIGNEMENT SUPERIEUR",
+    MC: "MAÎTRE DE CONFÉRENCES D'ENSEIGNEMENT SUPERIEUR",
+    PES: "PROFESSEUR D'ENSEIGNEMENT SUPERIEUR",
+    PE: "PROFESSEUR ÉMÉRITE",
+    PT: "PROFESSEUR TITULAIRE",
+  };
+  return mapping[corps?.toUpperCase()] || "ASSISTANT D'ENSEIGNEMENT SUPERIEUR";
+};
