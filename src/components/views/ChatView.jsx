@@ -1074,7 +1074,7 @@ const ChatView = () => {
                         "https://ui-avatars.com/api/?name=Utilisateur&background=3b82f6&color=fff"
                   }
                   alt="Avatar"
-                  className="w-10 h-10 rounded-full flex-shrink-0"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full flex-shrink-0"
                   onError={(e) => {
                     e.target.src =
                       "https://ui-avatars.com/api/?name=Utilisateur&background=3b82f6&color=fff";

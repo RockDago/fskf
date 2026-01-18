@@ -60,7 +60,7 @@ const translations = {
     },
     personal: {
       title: "MES INFORMATIONS",
-      subtitle: "FAIRE LA DÉCLARATION",
+
       name: "Nom complet",
       email: "Email",
       phone: "Téléphone",
@@ -589,12 +589,9 @@ const ChoiceStep = ({ language, setStep, setIsAnonymous }) => {
 
             {/* Bloc texte avec alignement vertical corrigé */}
             <div className="flex flex-col justify-center space-y-1">
-              {/* Texte 1 - Logo République - REMONTÉ */}
-              <span className="font-semibold text-sm uppercase leading-tight  p-2">
+              <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Repoblikan'i Madagasikara
               </span>
-
-              {/* Texte 2 - Logo MESUPRES - DESCENDU */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Ministeran'ny Fampianarana Ambony
                 <br />
@@ -605,79 +602,167 @@ const ChoiceStep = ({ language, setStep, setIsAnonymous }) => {
         </div>
       </div>
 
-      {/* Contenu principal avec cadre vert - MÊMES DIMENSIONS QUE LA PAGE D'ACCUEIL */}
-      <div className="relative w-full max-w-6xl flex-1">
-        {/* Cadre vert principal - MÊME DIMENSION QUE LA PAGE BONJOUR */}
+      {/* Contenu principal avec cadre vert */}
+      <div className="relative w-full max-w-6xl flex-1 min-h-[600px]">
+        {/* Cadre vert principal */}
         <div className="absolute inset-0 border-4 border-[#b3d088] bg-[#f9faf7] z-0"></div>
 
-        {/* Contenu */}
-        <div className="relative z-10 p-8 md:p-12 pt-16 md:pt-20 h-full flex flex-col items-center justify-center">
-          {/* Zone centrale avec fond transparent et Asset 8 en arrière-plan */}
-          <div className="relative bg-transparent rounded-[80px] px-12 py-16 max-w-xl w-full">
-            {/* Asset 8 en fond */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-              <img
-                src={FondAsset}
-                alt="Fond"
-                className="max-w-none w-[140%] h-[140%] object-contain scale-130 select-none opacity-100"
-              />
-            </div>
+        {/* Contenu - Structure FLEX pour mobile, ORIGINAL pour desktop */}
+        <div className="relative z-10 h-full flex flex-col lg:block p-8 md:p-12 pt-16 md:pt-20">
+          {/* Zone de contenu - FLEX sur mobile, CENTER sur desktop */}
+          <div className="flex-1 flex items-center justify-center lg:h-full lg:flex lg:flex-col lg:items-center lg:justify-center">
+            <div className="relative bg-transparent rounded-[80px] px-4 lg:px-12 py-8 lg:py-16 max-w-xl w-full">
+              {/* Asset 8 en fond - MASQUÉ mobile/tablette, VISIBLE desktop avec taille originale */}
+              <div className="hidden lg:flex absolute inset-0 items-center justify-center pointer-events-none z-0">
+                <img
+                  src={FondAsset}
+                  alt="Fond"
+                  className="max-w-none w-[140%] h-[140%] object-contain scale-130 select-none opacity-100"
+                />
+              </div>
 
-            {/* Contenu par-dessus - TOUT CENTRÉ ET ALIGNÉ */}
-            <div className="relative z-20 flex flex-col items-center justify-center w-full text-center">
-              {/* Titre centré */}
-              <h1 className="text-4xl md:text-5xl font-bold text-[#5e8f3e] mb-12">
-                {t.choice.title}
-              </h1>
+              {/* Contenu par-dessus */}
+              <div className="relative z-20 flex flex-col items-center justify-center w-full text-center">
+                {/* Titre */}
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#5e8f3e] mb-10 lg:mb-12 uppercase tracking-wide lg:tracking-normal">
+                  {t.choice.title}
+                </h1>
 
-              {/* Options parfaitement centrées et alignées */}
-              <div className="flex flex-col items-center justify-center space-y-8 w-full">
-                {/* Anonyme - PARFAITEMENT CENTRÉ */}
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex items-center justify-center space-x-4 cursor-pointer text-gray-700 text-lg w-full max-w-[200px]">
-                    <input
-                      type="radio"
-                      name="choix-anonymat"
-                      value="anonyme"
-                      className="w-6 h-6 border-2 border-gray-400 accent-blue-600"
-                      onChange={() => {
-                        setIsAnonymous(true);
-                        setStep(2); // Redirige vers la nouvelle étape de preuves
-                      }}
-                    />
-                    <span className="flex-1 text-center">
-                      {t.choice.anonymous}
-                    </span>
-                  </label>
-                </div>
+                {/* OPTIONS - Design amélioré sur mobile/tablette, Original sur desktop */}
+                <div className="flex flex-col items-center justify-center space-y-5 lg:space-y-8 w-full">
+                  {/* Option 1: Anonyme */}
+                  {/* Mobile/Tablette: Bouton professionnel */}
+                  <button
+                    onClick={() => {
+                      setIsAnonymous(true);
+                      setStep(2);
+                    }}
+                    className="lg:hidden group relative w-full max-w-md bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 border-2 border-gray-300 hover:border-blue-500 rounded-none shadow-md hover:shadow-lg transition-all duration-300 p-5"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-400 group-hover:border-blue-600 bg-white transition-all duration-300 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="block text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
+                          {t.choice.anonymous}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-1">
+                          {language === "fr"
+                            ? "Votre identité restera confidentielle"
+                            : "Ny mombamomba anao dia tsy haseho"}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <svg
+                          className="w-6 h-6 text-blue-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
 
-                {/* Je m'identifie - PARFAITEMENT CENTRÉ */}
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex items-center justify-center space-x-4 cursor-pointer text-gray-700 text-lg w-full max-w-[200px]">
-                    <input
-                      type="radio"
-                      name="choix-anonymat"
-                      value="non-anonyme"
-                      className="w-6 h-6 border-2 border-red-500 accent-red-600"
-                      onChange={() => {
-                        setIsAnonymous(false);
-                        setStep(2); // Redirige vers la nouvelle étape de preuves
-                      }}
-                    />
-                    <span className="flex-1 text-center">
-                      {t.choice.identified}
-                    </span>
-                  </label>
+                  {/* Desktop: Design original avec radio */}
+                  <div className="hidden lg:flex items-center justify-center w-full">
+                    <label className="flex items-center justify-center space-x-4 cursor-pointer text-gray-700 text-lg w-full max-w-[200px]">
+                      <input
+                        type="radio"
+                        name="choix-anonymat"
+                        value="anonyme"
+                        className="w-6 h-6 border-2 border-gray-400 accent-blue-600"
+                        onChange={() => {
+                          setIsAnonymous(true);
+                          setStep(2);
+                        }}
+                      />
+                      <span className="flex-1 text-center">
+                        {t.choice.anonymous}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Option 2: Je m'identifie */}
+                  {/* Mobile/Tablette: Bouton professionnel */}
+                  <button
+                    onClick={() => {
+                      setIsAnonymous(false);
+                      setStep(2);
+                    }}
+                    className="lg:hidden group relative w-full max-w-md bg-white hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 border-2 border-gray-300 hover:border-green-600 rounded-none shadow-md hover:shadow-lg transition-all duration-300 p-5"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-400 group-hover:border-green-600 bg-white transition-all duration-300 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="block text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors">
+                          {t.choice.identified}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-1">
+                          {language === "fr"
+                            ? "Je fournis mes informations personnelles"
+                            : "Hanome ny mombamomba ahy aho"}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <svg
+                          className="w-6 h-6 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Desktop: Design original avec radio */}
+                  <div className="hidden lg:flex items-center justify-center w-full">
+                    <label className="flex items-center justify-center space-x-4 cursor-pointer text-gray-700 text-lg w-full max-w-[200px]">
+                      <input
+                        type="radio"
+                        name="choix-anonymat"
+                        value="non-anonyme"
+                        className="w-6 h-6 border-2 border-red-500 accent-red-600"
+                        onChange={() => {
+                          setIsAnonymous(false);
+                          setStep(2);
+                        }}
+                      />
+                      <span className="flex-1 text-center">
+                        {t.choice.identified}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bouton Retour - STYLE UNIFORMISÉ AVEC BORDURE VERTE ET ESPACEMENT AUGMENTÉ */}
-          <div className="mt-8 flex justify-center w-full">
+          {/* Bouton Retour - FIXÉ EN BAS sur mobile, CENTRÉ sur desktop */}
+          <div className="flex justify-center w-full mt-auto lg:mt-8 p-4 lg:p-0">
             <button
               onClick={() => setStep(0)}
-              className="px-8 py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-[#4a7b32] flex items-center gap-2 font-semibold text-lg transition-colors hover:bg-gray-50"
+              className="px-8 py-3 lg:py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-white hover:bg-[#5e8f3e] lg:hover:text-[#4a7b32] lg:hover:bg-gray-50 hover:border-[#5e8f3e] lg:hover:border-[#b3d088] flex items-center gap-2 font-semibold text-base lg:text-lg transition-all duration-300 rounded-none shadow-sm hover:shadow-md"
             >
               <ChevronLeft size={24} />
               {t.choice.back}
@@ -724,12 +809,9 @@ const ProofStep = ({ language, setStep, setHasProof, isAnonymous }) => {
 
             {/* Bloc texte avec alignement vertical corrigé */}
             <div className="flex flex-col justify-center space-y-1">
-              {/* Texte 1 - Logo République - REMONTÉ */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Repoblikan'i Madagasikara
               </span>
-
-              {/* Texte 2 - Logo MESUPRES - DESCENDU */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Ministeran'ny Fampianarana Ambony
                 <br />
@@ -740,99 +822,193 @@ const ProofStep = ({ language, setStep, setHasProof, isAnonymous }) => {
         </div>
       </div>
 
-      {/* Contenu principal avec cadre vert - MÊMES DIMENSIONS QUE LA PAGE D'ACCUEIL */}
-      <div className="relative w-full max-w-6xl flex-1">
-        {/* Cadre vert principal - MÊME DIMENSION QUE LA PAGE BONJOUR */}
+      {/* Contenu principal avec cadre vert */}
+      <div className="relative w-full max-w-6xl flex-1 min-h-[600px]">
+        {/* Cadre vert principal */}
         <div className="absolute inset-0 border-4 border-[#b3d088] bg-[#f9faf7] z-0"></div>
 
-        {/* Contenu */}
-        <div className="relative z-10 p-8 md:p-12 pt-16 md:pt-20 h-full flex flex-col items-center justify-center">
-          {/* Zone centrale avec fond transparent et Asset 8 en arrière-plan */}
-          <div className="relative bg-transparent rounded-[80px] px-8 py-12 max-w-xl w-full">
-            {/* Asset 8 en fond - MÊME TAILLE QUE CHOISISSEZ */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-              <img
-                src={FondAsset}
-                alt="Fond"
-                className="max-w-none w-[120%] h-[120%] object-contain scale-110 select-none opacity-100"
-              />
-            </div>
+        {/* Contenu - Structure FLEX pour mobile, ORIGINAL pour desktop */}
+        <div className="relative z-10 h-full flex flex-col lg:block p-8 md:p-12 pt-16 md:pt-20">
+          {/* Zone de contenu - FLEX sur mobile, CENTER sur desktop */}
+          <div className="flex-1 flex items-center justify-center lg:h-full lg:flex lg:flex-col lg:items-center lg:justify-center">
+            <div className="relative bg-transparent rounded-[80px] px-4 lg:px-8 py-8 lg:py-12 max-w-xl w-full">
+              {/* Asset 8 en fond - MASQUÉ mobile/tablette, VISIBLE desktop */}
+              <div className="hidden lg:flex absolute inset-0 items-center justify-center pointer-events-none z-0">
+                <img
+                  src={FondAsset}
+                  alt="Fond"
+                  className="max-w-none w-[120%] h-[120%] object-contain scale-110 select-none opacity-100"
+                />
+              </div>
 
-            {/* Contenu par-dessus - TOUT CENTRÉ ET ALIGNÉ */}
-            <div className="relative z-20 flex flex-col items-center justify-center w-full text-center">
-              {/* Titre centré - TAILLE RÉDUITE COMME CHOISISSEZ */}
-              <h1 className="text-2xl md:text-3xl font-bold text-[#5e8f3e] mb-6">
-                {t.proof.title}
-              </h1>
+              {/* Contenu par-dessus */}
+              <div className="relative z-20 flex flex-col items-center justify-center w-full text-center">
+                {/* Titre */}
+                <h1 className="text-2xl md:text-3xl font-bold text-[#5e8f3e] mb-6 uppercase tracking-wide lg:tracking-normal">
+                  {t.proof.title}
+                </h1>
 
-              {/* Question - TEXTE PLUS PETIT */}
-              <p className="text-base md:text-lg font-semibold text-gray-800 mb-3 max-w-md">
-                {t.proof.question}
-              </p>
+                {/* Question */}
+                <p className="text-base md:text-lg font-semibold text-gray-800 mb-3 max-w-md">
+                  {t.proof.question}
+                </p>
 
-              {/* Description - TEXTE ENCORE PLUS PETIT */}
-              <p className="text-xs text-gray-600 mb-8 max-w-md leading-relaxed">
-                {t.proof.description}
-              </p>
+                {/* Description */}
+                <p className="text-xs md:text-sm text-gray-600 mb-8 max-w-md leading-relaxed">
+                  {t.proof.description}
+                </p>
 
-              {/* Options parfaitement centrées et alignées - ESPACEMENT RÉDUIT */}
-              <div className="flex flex-col items-center justify-center space-y-4 w-full">
-                {/* Oui - PARFAITEMENT CENTRÉ */}
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex items-center justify-center space-x-3 cursor-pointer text-gray-700 text-base w-full max-w-[220px]">
-                    <input
-                      type="radio"
-                      name="choix-preuve"
-                      value="oui"
-                      className="w-5 h-5 border-2 border-green-500 accent-green-600"
-                      onChange={() => {
-                        setHasProof(true);
-                        // Si anonyme, aller directement à la catégorie, sinon aux infos perso
-                        if (isAnonymous) {
-                          setStep(4); // Catégorie
-                        } else {
-                          setStep(3); // Infos personnelles
-                        }
-                      }}
-                    />
-                    <span className="flex-1 text-center font-medium">
-                      {t.proof.yes}
-                    </span>
-                  </label>
-                </div>
+                {/* OPTIONS - Design amélioré sur mobile/tablette, Original sur desktop */}
+                <div className="flex flex-col items-center justify-center space-y-4 lg:space-y-4 w-full">
+                  {/* Option 1: Oui, j'ai des preuves */}
+                  {/* Mobile/Tablette: Bouton professionnel */}
+                  <button
+                    onClick={() => {
+                      setHasProof(true);
+                      if (isAnonymous) {
+                        setStep(4);
+                      } else {
+                        setStep(3);
+                      }
+                    }}
+                    className="lg:hidden group relative w-full max-w-md bg-white hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 border-2 border-gray-300 hover:border-green-500 rounded-none shadow-md hover:shadow-lg transition-all duration-300 p-5"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-400 group-hover:border-green-600 bg-white transition-all duration-300 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="block text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors">
+                          {t.proof.yes}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-1">
+                          {language === "fr"
+                            ? "Photos, documents, vidéos..."
+                            : "Sary, tahirin-kevitra, horonan-tsary..."}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <svg
+                          className="w-6 h-6 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
 
-                {/* Non - PARFAITEMENT CENTRÉ */}
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex items-center justify-center space-x-3 cursor-pointer text-gray-700 text-base w-full max-w-[220px]">
-                    <input
-                      type="radio"
-                      name="choix-preuve"
-                      value="non"
-                      className="w-5 h-5 border-2 border-red-500 accent-red-600"
-                      onChange={() => {
-                        setHasProof(false);
-                        // Si anonyme, aller directement à la catégorie, sinon aux infos perso
-                        if (isAnonymous) {
-                          setStep(4); // Catégorie
-                        } else {
-                          setStep(3); // Infos personnelles
-                        }
-                      }}
-                    />
-                    <span className="flex-1 text-center font-medium">
-                      {t.proof.no}
-                    </span>
-                  </label>
+                  {/* Desktop: Design original avec radio */}
+                  <div className="hidden lg:flex items-center justify-center w-full">
+                    <label className="flex items-center justify-center space-x-3 cursor-pointer text-gray-700 text-base w-full max-w-[220px]">
+                      <input
+                        type="radio"
+                        name="choix-preuve"
+                        value="oui"
+                        className="w-5 h-5 border-2 border-green-500 accent-green-600"
+                        onChange={() => {
+                          setHasProof(true);
+                          if (isAnonymous) {
+                            setStep(4);
+                          } else {
+                            setStep(3);
+                          }
+                        }}
+                      />
+                      <span className="flex-1 text-center font-medium">
+                        {t.proof.yes}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Option 2: Non, je n'ai pas de preuves */}
+                  {/* Mobile/Tablette: Bouton professionnel */}
+                  <button
+                    onClick={() => {
+                      setHasProof(false);
+                      if (isAnonymous) {
+                        setStep(4);
+                      } else {
+                        setStep(3);
+                      }
+                    }}
+                    className="lg:hidden group relative w-full max-w-md bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 border-2 border-gray-300 hover:border-orange-500 rounded-none shadow-md hover:shadow-lg transition-all duration-300 p-5"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-400 group-hover:border-orange-600 bg-white transition-all duration-300 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="block text-lg font-bold text-gray-800 group-hover:text-orange-700 transition-colors">
+                          {t.proof.no}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-1">
+                          {language === "fr"
+                            ? "Je continuerai sans preuves"
+                            : "Hanohy tsy misy porofo aho"}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <svg
+                          className="w-6 h-6 text-orange-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Desktop: Design original avec radio */}
+                  <div className="hidden lg:flex items-center justify-center w-full">
+                    <label className="flex items-center justify-center space-x-3 cursor-pointer text-gray-700 text-base w-full max-w-[220px]">
+                      <input
+                        type="radio"
+                        name="choix-preuve"
+                        value="non"
+                        className="w-5 h-5 border-2 border-red-500 accent-red-600"
+                        onChange={() => {
+                          setHasProof(false);
+                          if (isAnonymous) {
+                            setStep(4);
+                          } else {
+                            setStep(3);
+                          }
+                        }}
+                      />
+                      <span className="flex-1 text-center font-medium">
+                        {t.proof.no}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Bouton Retour - STYLE UNIFORMISÉ AVEC BORDURE VERTE ET ESPACEMENT AUGMENTÉ */}
-          <div className="mt-6 flex justify-center w-full">
+          {/* Bouton Retour - FIXÉ EN BAS sur mobile, CENTRÉ sur desktop */}
+          <div className="flex justify-center w-full mt-auto lg:mt-6 p-4 lg:p-0">
             <button
               onClick={() => setStep(1)}
-              className="px-8 py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-[#4a7b32] flex items-center gap-2 font-semibold text-base transition-colors hover:bg-gray-50"
+              className="px-8 py-3 lg:py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-white hover:bg-[#5e8f3e] lg:hover:text-[#4a7b32] lg:hover:bg-gray-50 hover:border-[#5e8f3e] lg:hover:border-[#b3d088] flex items-center gap-2 font-semibold text-base lg:text-base transition-all duration-300 rounded-none shadow-sm hover:shadow-md"
             >
               <ChevronLeft size={20} />
               {t.proof.back}
@@ -880,7 +1056,7 @@ const PersonalInfoStep = ({
   return (
     <div className="bg-white min-h-screen flex flex-col items-center p-4 font-bill">
       {/* En-tête avec logos - IDENTIQUE à la page d'accueil */}
-      <div className="w-full max-w-3xl mx-auto mb-4">
+      <div className="w-full max-w-3xl mx-auto mb-6">
         <div className="w-full flex items-center justify-center bg-white p-3 rounded-lg">
           <div className="flex items-center justify-center space-x-4">
             {/* Bloc logos : REP en haut, MESUPRES en bas */}
@@ -901,12 +1077,9 @@ const PersonalInfoStep = ({
 
             {/* Bloc texte avec alignement vertical corrigé */}
             <div className="flex flex-col justify-center space-y-1">
-              {/* Texte 1 - Logo République - REMONTÉ */}
-              <span className="font-semibold text-sm uppercase leading-tight  p-2">
+              <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Repoblikan'i Madagasikara
               </span>
-
-              {/* Texte 2 - Logo MESUPRES - DESCENDU */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Ministeran'ny Fampianarana Ambony
                 <br />
@@ -918,17 +1091,17 @@ const PersonalInfoStep = ({
       </div>
 
       {/* Contenu principal avec cadre vert - MÊMES DIMENSIONS QUE LA PAGE D'ACCUEIL */}
-      <div className="relative w-full max-w-6xl flex-1">
+      <div className="relative w-full max-w-6xl flex-1 min-h-[600px]">
         {/* Cadre vert principal - MÊME DIMENSION QUE LA PAGE BONJOUR */}
         <div className="absolute inset-0 border-4 border-[#b3d088] bg-[#f9faf7] z-0"></div>
 
         {/* Contenu */}
-        <div className="relative z-10 p-4 md:p-6 pt-8 md:pt-12 h-full flex flex-col items-center justify-center">
+        <div className="relative z-10 h-full flex flex-col p-4 md:p-6 pt-8 md:pt-12">
           {/* Titre principal réduit */}
           <h1 className="text-center text-2xl md:text-3xl font-bold text-[#5e8f3e] mb-2">
             {t.personal.title}
           </h1>
-          <p className="text-center text-xs font-semibold text-gray-700 mb-6">
+          <p className="text-center text-xs md:text-sm font-semibold text-gray-700 mb-6">
             {t.personal.subtitle}
           </p>
 
@@ -942,8 +1115,8 @@ const PersonalInfoStep = ({
               className="w-full"
             >
               {/* Nom complet */}
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-800 mb-1">
+              <div className="mb-3 md:mb-4">
+                <label className="block text-xs md:text-sm font-semibold text-gray-800 mb-1">
                   {t.personal.name} <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -952,17 +1125,20 @@ const PersonalInfoStep = ({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs transition-all bg-white"
+                  className="w-full px-3 py-2 md:py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs md:text-sm transition-all bg-white shadow-sm hover:border-[#b3d088]"
                   required
                 />
                 {errors.name && (
-                  <p className="mt-1 text-rose-600 text-xs">{errors.name}</p>
+                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {errors.name}
+                  </p>
                 )}
               </div>
 
               {/* Email */}
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-800 mb-1">
+              <div className="mb-3 md:mb-4">
+                <label className="block text-xs md:text-sm font-semibold text-gray-800 mb-1">
                   {t.personal.email} <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -971,17 +1147,20 @@ const PersonalInfoStep = ({
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs transition-all bg-white"
+                  className="w-full px-3 py-2 md:py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs md:text-sm transition-all bg-white shadow-sm hover:border-[#b3d088]"
                   required
                 />
                 {errors.email && (
-                  <p className="mt-1 text-rose-600 text-xs">{errors.email}</p>
+                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {errors.email}
+                  </p>
                 )}
               </div>
 
               {/* Téléphone */}
-              <div className="mb-3">
-                <label className="block text-xs font-semibold text-gray-800 mb-1">
+              <div className="mb-3 md:mb-4">
+                <label className="block text-xs md:text-sm font-semibold text-gray-800 mb-1">
                   {t.personal.phone} <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -990,17 +1169,20 @@ const PersonalInfoStep = ({
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs transition-all bg-white"
+                  className="w-full px-3 py-2 md:py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs md:text-sm transition-all bg-white shadow-sm hover:border-[#b3d088]"
                   required
                 />
                 {errors.phone && (
-                  <p className="mt-1 text-rose-600 text-xs">{errors.phone}</p>
+                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {errors.phone}
+                  </p>
                 )}
               </div>
 
               {/* Adresse */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-gray-800 mb-1">
+              <div className="mb-4 md:mb-5">
+                <label className="block text-xs md:text-sm font-semibold text-gray-800 mb-1">
                   {t.personal.address} <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -1009,56 +1191,66 @@ const PersonalInfoStep = ({
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs transition-all bg-white"
+                  className="w-full px-3 py-2 md:py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-xs md:text-sm transition-all bg-white shadow-sm hover:border-[#b3d088]"
                   required
                 />
                 {errors.address && (
-                  <p className="mt-1 text-rose-600 text-xs">{errors.address}</p>
+                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {errors.address}
+                  </p>
                 )}
               </div>
 
               {/* Certification */}
-              <div className="mb-4 flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={formData.acceptTerms || false}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      acceptTerms: e.target.checked,
-                    })
-                  }
-                  className="mt-0.5 h-3 w-3 text-[#b3d088] rounded focus:ring-[#b3d088]"
-                />
-                <label
-                  htmlFor="acceptTerms"
-                  className="text-xs text-gray-700 leading-relaxed"
-                >
-                  {t.personal.accept}
-                </label>
+              <div className="mb-4 md:mb-5 p-3 bg-orange-50 border-2 border-orange-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={formData.acceptTerms || false}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        acceptTerms: e.target.checked,
+                      })
+                    }
+                    className="mt-0.5 h-4 w-4 text-[#b3d088] rounded focus:ring-[#b3d088] cursor-pointer"
+                  />
+                  <label
+                    htmlFor="acceptTerms"
+                    className="text-xs md:text-sm text-gray-700 leading-relaxed cursor-pointer"
+                  >
+                    <span className="font-semibold text-rose-600">*</span>{" "}
+                    {t.personal.accept}
+                  </label>
+                </div>
+                {errors.acceptTerms && (
+                  <p className="mt-2 text-rose-600 text-xs flex items-center gap-1">
+                    <AlertCircle size={12} /> {errors.acceptTerms}
+                  </p>
+                )}
               </div>
-              {errors.acceptTerms && (
-                <p className="mb-3 text-rose-600 text-xs flex items-center gap-1">
-                  <AlertCircle size={10} /> {errors.acceptTerms}
-                </p>
-              )}
 
-              {/* Boutons AVEC ESPACEMENT AUGMENTÉ */}
-              <div className="flex justify-center gap-12 pt-6">
+              {/* Boutons - TAILLE RÉDUITE MOBILE/TABLETTE */}
+              <div className="flex justify-center items-center gap-4 md:gap-8 lg:gap-12 pt-4 md:pt-6">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-8 py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-[#4a7b32] flex items-center gap-2 font-semibold text-lg transition-colors hover:bg-gray-50"
+                  className="px-4 py-2 md:px-6 md:py-2 lg:px-8 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-white hover:bg-[#5e8f3e] hover:border-[#5e8f3e] flex items-center gap-1 md:gap-2 font-semibold text-sm md:text-base lg:text-lg transition-all rounded-none shadow-sm hover:shadow-md"
                 >
-                  <ChevronLeft size={24} />
-                  {t.personal.back}
+                  <ChevronLeft size={20} className="md:w-6 md:h-6" />
+                  <span className="hidden sm:inline">{t.personal.back}</span>
+                  <span className="sm:hidden">Retour</span>
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-2 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-lg transition-all shadow-md"
+                  className="px-4 py-2 md:px-6 md:py-2 lg:px-8 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-sm md:text-base lg:text-lg transition-all shadow-md hover:shadow-lg rounded-none"
                 >
-                  {t.personal.continue}
+                  <span className="hidden sm:inline">
+                    {t.personal.continue}
+                  </span>
+                  <span className="sm:hidden">Continuer</span>
                 </button>
               </div>
             </form>
@@ -1068,9 +1260,7 @@ const PersonalInfoStep = ({
 
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
-        <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2026
-        </div>
+        <div className="text-gray-500 text-xs">© daaq-Mesupres 2026</div>
       </div>
     </div>
   );
@@ -1098,9 +1288,27 @@ const CategoryStep = ({
 
   const [acceptTruth, setAcceptTruth] = useState(false);
   const [charCount, setCharCount] = useState(
-    formData.categoryDetails?.length || 0
+    formData.categoryDetails?.length || 0,
   );
   const minChars = 50;
+  const textareaRef = React.useRef(null);
+
+  // Fonction pour ajuster automatiquement la hauteur du textarea
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      const newHeight = Math.min(textarea.scrollHeight, 500); // Limite à 500px
+      textarea.style.height = newHeight + "px";
+
+      // Active le scroll si on atteint la limite
+      if (textarea.scrollHeight > 500) {
+        textarea.style.overflowY = "auto";
+      } else {
+        textarea.style.overflowY = "hidden";
+      }
+    }
+  };
 
   const handleNext = () => {
     const newErrors = {};
@@ -1177,6 +1385,11 @@ const CategoryStep = ({
     }
   };
 
+  // Ajuster la hauteur au montage si du texte existe déjà
+  React.useEffect(() => {
+    adjustTextareaHeight();
+  }, []);
+
   return (
     <div className="bg-white min-h-screen flex flex-col items-center p-4 font-bill">
       {/* En-tête avec logos - IDENTIQUE à la page d'accueil */}
@@ -1199,13 +1412,11 @@ const CategoryStep = ({
             <div className="w-[2px] bg-gray-400 h-36"></div>
             {/* Bloc texte avec alignement vertical corrigé */}
             <div className="flex flex-col justify-center space-y-1">
-              {/* Texte 1 - Logo République - REMONTÉ */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
                 Repoblikani Madagasikara
               </span>
-              {/* Texte 2 - Logo MESUPRES - DESCENDU */}
               <span className="font-semibold text-sm uppercase leading-tight p-2">
-                Ministeran'ny Fampianarana Ambony
+                Ministeran'ny Fampianaana Ambony
                 <br />
                 sy Fikarohana Ara-tsiansa
               </span>
@@ -1214,149 +1425,163 @@ const CategoryStep = ({
         </div>
       </div>
 
-      {/* Contenu principal avec cadre vert - MÊMES DIMENSIONS QUE LA PAGE D'ACCUEIL */}
-      <div className="relative w-full max-w-6xl flex-1">
-        {/* Cadre vert principal - MÊME DIMENSION QUE LA PAGE BONJOUR */}
+      {/* Contenu principal avec cadre vert */}
+      <div className="relative w-full max-w-6xl flex-1 min-h-[600px]">
+        {/* Cadre vert principal */}
         <div className="absolute inset-0 border-4 border-[#b3d088] bg-[#f9faf7] z-0"></div>
 
-        {/* Contenu */}
-        <div className="relative z-10 p-6 md:p-8 pt-12 md:pt-16 h-full flex flex-col items-center justify-center">
-          {/* Titre principal réduit */}
-          <h1 className="text-center text-3xl md:text-4xl font-bold text-[#5e8f3e] mb-6">
+        {/* Contenu - STRUCTURE FLEX pour mobile */}
+        <div className="relative z-10 h-full flex flex-col p-6 md:p-8 pt-12 md:pt-16">
+          {/* Titre principal */}
+          <h1 className="text-center text-2xl md:text-3xl lg:text-4xl font-bold text-[#5e8f3e] mb-6 md:mb-8">
             {t.category.title}
           </h1>
 
-          {/* Formulaire sans fond blanc */}
-          <div className="flex-1 flex flex-col justify-center items-center w-full max-w-xl mx-auto">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleNext();
-              }}
-              className="w-full"
-            >
-              {/* Catégorie */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  {t.category.selectLabel}
-                  <span className="text-rose-600">*</span>
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-sm transition-all bg-white"
-                  required
-                >
-                  <option value="" disabled>
-                    {t.category.selectPlaceholder}
-                  </option>
-                  {categories.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.category && (
-                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
-                    <AlertCircle size={12} />
-                    {errors.category}
-                  </p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  {t.category.detailsLabel}
-                  <span className="text-rose-600">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  value={formData.categoryDetails}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      categoryDetails: e.target.value,
-                    });
-                    setCharCount(e.target.value.length);
-                  }}
-                  placeholder={t.category.detailsPlaceholder}
-                  minLength={minChars}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] resize-y text-sm transition-all bg-white min-h-[100px] max-h-[400px]"
-                  required
-                />
-                {/* Compteur de caractères */}
-                <div className="flex items-center justify-between mt-1">
-                  <p
-                    className={`text-xs ${
-                      charCount < minChars ? "text-rose-600" : "text-gray-500"
-                    }`}
+          {/* Zone de formulaire - SCROLLABLE sur mobile */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <div className="w-full max-w-2xl mx-auto">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleNext();
+                }}
+                className="w-full"
+              >
+                {/* Catégorie - SELECT AMÉLIORÉ */}
+                <div className="mb-6">
+                  <label className="block text-sm md:text-base font-semibold text-gray-800 mb-2">
+                    {t.category.selectLabel}
+                    <span className="text-rose-600">*</span>
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-sm md:text-base transition-all bg-white shadow-sm hover:border-[#b3d088] cursor-pointer"
+                    required
                   >
-                    {charCount} / {minChars} caractères minimum
-                  </p>
-                  {charCount < minChars && (
-                    <p className="text-xs text-rose-600 flex items-center gap-1">
+                    <option value="" disabled>
+                      {t.category.selectPlaceholder}
+                    </option>
+                    {categories.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.category && (
+                    <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
                       <AlertCircle size={12} />
-                      Encore {minChars - charCount} caractères requis
+                      {errors.category}
                     </p>
                   )}
                 </div>
-                {errors.categoryDetails && (
-                  <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
-                    <AlertCircle size={12} />
-                    {errors.categoryDetails}
-                  </p>
-                )}
-              </div>
 
-              {/* Certification pour les signalements sans preuves */}
-              {!hasProof && (
-                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="acceptTruthNoProof"
-                      checked={acceptTruth}
-                      onChange={(e) => setAcceptTruth(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 text-[#b3d088] rounded focus:ring-[#b3d088]"
-                    />
-                    <label
-                      htmlFor="acceptTruthNoProof"
-                      className="text-sm text-gray-700 leading-relaxed"
+                {/* Description - TEXTAREA AUTO-EXPAND avec SCROLL et RESIZE MANUEL */}
+                <div className="mb-6">
+                  <label className="block text-sm md:text-base font-semibold text-gray-800 mb-2">
+                    {t.category.detailsLabel}
+                    <span className="text-rose-600">*</span>
+                  </label>
+                  <textarea
+                    ref={textareaRef}
+                    value={formData.categoryDetails}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        categoryDetails: e.target.value,
+                      });
+                      setCharCount(e.target.value.length);
+                      adjustTextareaHeight();
+                    }}
+                    onInput={adjustTextareaHeight}
+                    placeholder={t.category.detailsPlaceholder}
+                    minLength={minChars}
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b3d088] focus:border-[#b3d088] text-sm md:text-base transition-all bg-white shadow-sm hover:border-[#b3d088] resize-y"
+                    style={{
+                      minHeight: "120px",
+                      maxHeight: "500px",
+                      overflowY: "hidden",
+                    }}
+                    required
+                  />
+                  {/* Compteur de caractères */}
+                  <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                    <p
+                      className={`text-xs ${
+                        charCount < minChars
+                          ? "text-rose-600 font-semibold"
+                          : "text-gray-500"
+                      }`}
                     >
-                      <span className="font-semibold text-rose-600">*</span>{" "}
-                      {t.upload.acceptTruth}
-                    </label>
+                      {charCount} / {minChars} caractères minimum
+                    </p>
+                    {charCount < minChars && (
+                      <p className="text-xs text-rose-600 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        Encore {minChars - charCount} caractères requis
+                      </p>
+                    )}
                   </div>
-                  {errors.acceptTruth && (
-                    <p className="mt-2 text-rose-600 text-xs flex items-center gap-1">
+                  {errors.categoryDetails && (
+                    <p className="mt-1 text-rose-600 text-xs flex items-center gap-1">
                       <AlertCircle size={12} />
-                      {errors.acceptTruth}
+                      {errors.categoryDetails}
                     </p>
                   )}
                 </div>
-              )}
 
-              {/* Boutons AVEC ESPACEMENT AUGMENTÉ */}
-              <div className="flex justify-center gap-12 pt-6">
-                <button
-                  type="button"
-                  onClick={() => setStep(isAnonymous ? 2 : 3)}
-                  className="px-8 py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-[#4a7b32] flex items-center gap-2 font-semibold text-lg transition-colors hover:bg-gray-50"
-                >
-                  <ChevronLeft size={24} />
-                  {t.category.back}
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-2 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-lg transition-all shadow-md"
-                >
-                  {hasProof
-                    ? t.category.continue
-                    : t.proof.continueWithoutProof}
-                </button>
-              </div>
-            </form>
+                {/* Certification pour les signalements sans preuves */}
+                {!hasProof && (
+                  <div className="mb-6 p-3 md:p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="acceptTruthNoProof"
+                        checked={acceptTruth}
+                        onChange={(e) => setAcceptTruth(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 text-[#b3d088] rounded focus:ring-[#b3d088] cursor-pointer"
+                      />
+                      <label
+                        htmlFor="acceptTruthNoProof"
+                        className="text-xs md:text-sm text-gray-700 leading-relaxed cursor-pointer"
+                      >
+                        <span className="font-semibold text-rose-600">*</span>{" "}
+                        {t.upload.acceptTruth}
+                      </label>
+                    </div>
+                    {errors.acceptTruth && (
+                      <p className="mt-2 text-rose-600 text-xs flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {errors.acceptTruth}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+
+          {/* Boutons - FIXÉS EN BAS, UNE LIGNE, TAILLE RÉDUITE MOBILE */}
+          <div className="flex justify-center items-center gap-4 md:gap-8 lg:gap-12 pt-4 md:pt-6 pb-4">
+            <button
+              type="button"
+              onClick={() => setStep(isAnonymous ? 2 : 3)}
+              className="px-4 py-2 md:px-6 md:py-2 lg:px-8 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-white hover:bg-[#5e8f3e] hover:border-[#5e8f3e] flex items-center gap-1 md:gap-2 font-semibold text-sm md:text-base lg:text-lg transition-all rounded-none shadow-sm hover:shadow-md"
+            >
+              <ChevronLeft size={20} className="md:w-6 md:h-6" />
+              <span className="hidden sm:inline">{t.category.back}</span>
+              <span className="sm:hidden">Retour</span>
+            </button>
+            <button
+              type="submit"
+              onClick={handleNext}
+              className="px-4 py-2 md:px-6 md:py-2 lg:px-8 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-sm md:text-base lg:text-lg transition-all shadow-md hover:shadow-lg rounded-none"
+            >
+              <span className="hidden sm:inline">
+                {hasProof ? t.category.continue : t.proof.continueWithoutProof}
+              </span>
+              <span className="sm:hidden">Continuer</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1389,7 +1614,7 @@ const UploadStep = ({
     const newFiles = Array.from(e.target.files);
     const errors = [];
     const validFiles = [];
-    const maxSize = 25 * 1024 * 1024;
+    const maxSize = 25 * 1024 * 1024; // 25 Mo
     const validTypes = [
       "image/jpeg",
       "image/jpg",
@@ -1403,14 +1628,14 @@ const UploadStep = ({
         errors.push(
           `${file.name}: Type de fichier non supporté (${
             file.type || "inconnu"
-          })`
+          })`,
         );
       } else if (file.size > maxSize) {
         errors.push(
           `${file.name}: Taille trop grande (${(
             file.size /
             (1024 * 1024)
-          ).toFixed(2)} Mo > 25 Mo)`
+          ).toFixed(2)} Mo > 25 Mo)`,
         );
       } else {
         validFiles.push(file);
@@ -1470,30 +1695,30 @@ const UploadStep = ({
   return (
     <div className="bg-white min-h-screen flex flex-col items-center p-4 font-bill">
       {/* Header officiel */}
-      <div className="w-full max-w-3xl mx-auto mb-3">
-        <div className="w-full flex items-center justify-center bg-white p-2 rounded-lg">
+      <div className="w-full max-w-3xl mx-auto mb-6">
+        <div className="w-full flex items-center justify-center bg-white p-3 rounded-lg">
           <div className="flex items-center justify-center space-x-4">
-            <div className="flex flex-col items-center justify-center space-y-1">
+            <div className="flex flex-col items-center justify-center space-y-2">
               <img
                 src={LogoRep}
                 alt="Logo République"
-                className="h-14 w-14 object-contain"
+                className="h-16 w-16 object-contain"
               />
               <img
                 src={LogoMesupres}
                 alt="Logo MESUPRES"
-                className="h-14 w-14 object-contain"
+                className="h-16 w-16 object-contain"
               />
             </div>
-            <div className="w-[2px] bg-gray-400 h-28"></div>
-            <div className="flex flex-col justify-center space-y-1 text-left">
-              <span className="font-semibold text-xs uppercase leading-tight">
-                REPUBLIQUE DE MADAGASCAR
+            <div className="w-[2px] bg-gray-400 h-36"></div>
+            <div className="flex flex-col justify-center space-y-1">
+              <span className="font-semibold text-sm uppercase leading-tight p-2">
+                Repoblikani Madagasikara
               </span>
-              <span className="font-semibold text-xs uppercase leading-tight">
-                MINISTERE DE L'ENSEGNEMENT SUPERIEURE
+              <span className="font-semibold text-sm uppercase leading-tight p-2">
+                Ministeran'ny Fampianaana Ambony
                 <br />
-                ET DE LA RECHERCHE SCIENTIFIQUE
+                sy Fikarohana Ara-tsiansa
               </span>
             </div>
           </div>
@@ -1501,27 +1726,28 @@ const UploadStep = ({
       </div>
 
       {/* Grand cadre vert officiel */}
-      <div className="relative w-full max-w-6xl flex-1 mb-4">
+      <div className="relative w-full max-w-6xl flex-1 min-h-[600px]">
         <div className="absolute inset-0 border-4 border-[#b3d088] bg-[#f9faf7] z-0"></div>
 
-        <div className="relative z-10 px-6 pt-8 pb-6 md:px-8 md:pt-12 md:pb-8 h-full flex flex-col">
-          {/* Titre principal réduit */}
-          <h1 className="text-center text-3xl md:text-4xl font-bold text-[#5e8f3e] mb-6">
+        <div className="relative z-10 h-full flex flex-col p-6 md:p-8 pt-12 md:pt-16">
+          {/* Titre principal */}
+          <h1 className="text-center text-2xl md:text-3xl lg:text-4xl font-bold text-[#5e8f3e] mb-6 md:mb-8">
             {t.upload.title}
           </h1>
 
-          {/* Formulaire sans fond blanc */}
-          <div className="flex-1 flex flex-col justify-center items-center w-full max-w-xl mx-auto">
+          {/* Zone de contenu centrale */}
+          <div className="flex-1 flex flex-col justify-center items-center w-full max-w-2xl mx-auto">
             {/* Titre secondaire */}
-            <p className="text-center text-sm font-semibold text-gray-800 mb-4">
+            <p className="text-center text-sm md:text-base font-semibold text-gray-800 mb-2">
               {t.upload.attachments} <span className="text-rose-600">*</span>
             </p>
-            <p className="text-center text-xs text-gray-600 mb-6 leading-relaxed">
-              {t.upload.attachmentsInfo}
+            <p className="text-center text-xs md:text-sm text-gray-600 mb-6 leading-relaxed">
+              Formats acceptés: JPG, JPEG, PNG, MP4, PDF • Taille max:{" "}
+              <strong>25 Mo</strong> • Au moins 1 fichier requis
             </p>
 
             {/* Zone de dépôt */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#b3d088] transition-all bg-white mb-6 w-full">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 md:p-8 text-center hover:border-[#b3d088] transition-all bg-white mb-6 w-full">
               <input
                 type="file"
                 multiple
@@ -1532,10 +1758,10 @@ const UploadStep = ({
               />
               <label htmlFor="file-upload" className="cursor-pointer">
                 <Upload className="mx-auto mb-3 text-gray-400" size={40} />
-                <p className="text-sm font-medium text-gray-700 mb-1">
+                <p className="text-sm md:text-base font-medium text-gray-700 mb-1">
                   {t.upload.uploadLabel}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs md:text-sm text-gray-500">
                   {t.upload.uploadSubtext}
                 </p>
               </label>
@@ -1566,7 +1792,7 @@ const UploadStep = ({
                 <p className="text-center font-semibold text-gray-700 mb-3 text-sm">
                   {t.upload.filesAdded} ({formData.files.length})
                 </p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
                   {formData.files.map((file, index) => (
                     <div
                       key={index}
@@ -1593,84 +1819,91 @@ const UploadStep = ({
             )}
 
             {/* Certification */}
-            <div className="mb-6 flex items-start gap-2 w-full">
-              <input
-                type="checkbox"
-                id="acceptTruth"
-                checked={formData.acceptTruth || false}
-                onChange={(e) =>
-                  setFormData({ ...formData, acceptTruth: e.target.checked })
-                }
-                className="mt-0.5 h-4 w-4 text-[#b3d088] rounded focus:ring-[#b3d088]"
-              />
-              <label
-                htmlFor="acceptTruth"
-                className="text-xs text-gray-700 leading-relaxed"
-              >
-                <span className="font-semibold text-rose-600">*</span>{" "}
-                {t.upload.acceptTruth}
-              </label>
+            <div className="mb-6 p-3 md:p-4 bg-orange-50 border-2 border-orange-200 rounded-lg w-full">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="acceptTruth"
+                  checked={formData.acceptTruth || false}
+                  onChange={(e) =>
+                    setFormData({ ...formData, acceptTruth: e.target.checked })
+                  }
+                  className="mt-0.5 h-4 w-4 text-[#b3d088] rounded focus:ring-[#b3d088] cursor-pointer"
+                />
+                <label
+                  htmlFor="acceptTruth"
+                  className="text-xs md:text-sm text-gray-700 leading-relaxed cursor-pointer"
+                >
+                  <span className="font-semibold text-rose-600">*</span>{" "}
+                  {t.upload.acceptTruth}
+                </label>
+              </div>
+              {errors.acceptTruth && (
+                <p className="mt-2 text-rose-600 text-xs flex items-center gap-1">
+                  <AlertCircle size={12} /> {errors.acceptTruth}
+                </p>
+              )}
             </div>
-            {errors.acceptTruth && (
-              <p className="mb-4 text-rose-600 text-xs flex items-center gap-1">
-                <AlertCircle size={12} /> {errors.acceptTruth}
-              </p>
-            )}
+          </div>
 
-            {/* Boutons AVEC ESPACEMENT AUGMENTÉ */}
-            <div className="flex justify-center gap-12 pt-6 w-full">
-              <button
-                type="button"
-                onClick={() => setStep(4)}
-                disabled={isSubmitting}
-                className="px-8 py-2 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-[#4a7b32] flex items-center gap-2 font-semibold text-lg transition-colors hover:bg-gray-50 disabled:opacity-50"
-              >
-                <ChevronLeft size={24} />
-                {t.upload.back}
-              </button>
-              <button
-                onClick={validateAndSubmit}
-                disabled={
-                  isSubmitting ||
-                  (hasProof && formData.files.length === 0) ||
-                  !formData.acceptTruth
-                }
-                className="px-8 py-2 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-lg transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
+          {/* Boutons - FIXÉS EN BAS, TAILLE RÉDUITE MOBILE */}
+          <div className="flex justify-center items-center gap-4 md:gap-8 lg:gap-12 pt-4 md:pt-6 pb-4">
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              disabled={isSubmitting}
+              className="px-4 py-2 md:px-6 md:py-2 lg:px-8 border-2 border-[#b3d088] text-[#5e8f3e] hover:text-white hover:bg-[#5e8f3e] hover:border-[#5e8f3e] flex items-center gap-1 md:gap-2 font-semibold text-sm md:text-base lg:text-lg transition-all rounded-none shadow-sm hover:shadow-md disabled:opacity-50"
+            >
+              <ChevronLeft size={20} className="md:w-6 md:h-6" />
+              <span className="hidden sm:inline">{t.upload.back}</span>
+              <span className="sm:hidden">Retour</span>
+            </button>
+            <button
+              onClick={validateAndSubmit}
+              disabled={
+                isSubmitting ||
+                (hasProof && formData.files.length === 0) ||
+                !formData.acceptTruth
+              }
+              className="px-4 py-2 md:px-6 md:py-2 lg:px-8 bg-[#b3d088] hover:bg-[#9ec97a] text-white font-bold text-sm md:text-base lg:text-lg transition-all shadow-md hover:shadow-lg rounded-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">
                     {t.upload.submitting}
-                  </>
-                ) : (
-                  t.upload.submit
-                )}
-              </button>
-            </div>
+                  </span>
+                  <span className="sm:hidden">Envoi...</span>
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">{t.upload.submit}</span>
+                  <span className="sm:hidden">Soumettre</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
       {/* COPYRIGHT EN DEHORS DE LA LIGNE VERTE */}
       <div className="w-full max-w-6xl text-center mt-4">
-        <div className="text-gray-500 text-xs">
-          copyright @ daaq-Mesupres 2026
-        </div>
+        <div className="text-gray-500 text-xs">© daaq-Mesupres 2026</div>
       </div>
     </div>
   );
@@ -1874,7 +2107,7 @@ const SignalementForm = () => {
         for (const file of formData.files) {
           formDataToSend.append("files[]", file);
           console.log(
-            `📁 Fichier ajouté: ${file.name} (${file.type}, ${file.size} bytes)`
+            `📁 Fichier ajouté: ${file.name} (${file.type}, ${file.size} bytes)`,
           );
         }
       }

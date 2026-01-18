@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  UserX,
   Check,
   CheckCheck,
   ZoomIn,
@@ -45,6 +44,8 @@ const FloatingChatBubble = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showChatList, setShowChatList] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
 
   // ===== ÉTATS DONNÉES =====
   const [message, setMessage] = useState("");
@@ -80,7 +81,41 @@ const FloatingChatBubble = ({
   const imageInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const inputContainerRef = useRef(null);
   const previousMessageCountRef = useRef(0);
+
+  // ===== EFFET POUR DÉTECTER LA TAILLE D'ÉCRAN =====
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  // ===== EFFET POUR AJUSTER LA HAUTEUR DU CONTENEUR DES MESSAGES =====
+  useEffect(() => {
+    const updateMessagesContainerHeight = () => {
+      if (!chatContainerRef.current || !inputContainerRef.current) return;
+
+      const inputContainer = inputContainerRef.current;
+      const inputHeight = inputContainer.offsetHeight;
+
+      // Réserver de l'espace pour l'input en bas
+      chatContainerRef.current.style.paddingBottom = `${inputHeight + 10}px`;
+    };
+
+    updateMessagesContainerHeight();
+    window.addEventListener("resize", updateMessagesContainerHeight);
+
+    return () =>
+      window.removeEventListener("resize", updateMessagesContainerHeight);
+  }, [selectedFile, isCreatingNewChat, showChatList]);
 
   // ===== FONCTIONS HELPER =====
 
@@ -174,13 +209,10 @@ const FloatingChatBubble = ({
     };
   };
 
-  // ✅ FONCTION AMÉLIORÉE pour récupérer le dernier message
   const getLastMessage = (chat) => {
-    // Priorité 1: Vérifier s'il y a des messages dans le chat
     if (chat.messages && chat.messages.length > 0) {
       const lastMsg = chat.messages[chat.messages.length - 1];
 
-      // Afficher selon le type de message
       if (lastMsg.type === "image") {
         return "📷 Image";
       } else if (lastMsg.type === "video") {
@@ -192,7 +224,6 @@ const FloatingChatBubble = ({
       }
     }
 
-    // Priorité 2: Vérifier lastmessage ou lastMessage
     if (chat.lastmessage) {
       return chat.lastmessage;
     }
@@ -201,7 +232,6 @@ const FloatingChatBubble = ({
       return chat.lastMessage;
     }
 
-    // Par défaut
     return "Nouvelle conversation";
   };
 
@@ -214,7 +244,6 @@ const FloatingChatBubble = ({
     try {
       const response = await ChatService.getUserChats();
       if (response.success) {
-        // ✅ TRIER par date du dernier message (plus récent en premier)
         const sortedChats = response.chats.sort((a, b) => {
           const dateA = new Date(
             a.lastmessageat || a.lastMessageAt || a.createdat || 0
@@ -222,7 +251,7 @@ const FloatingChatBubble = ({
           const dateB = new Date(
             b.lastmessageat || b.lastMessageAt || b.createdat || 0
           );
-          return dateB - dateA; // Plus récent en premier
+          return dateB - dateA;
         });
 
         setChats(sortedChats);
@@ -377,7 +406,7 @@ const FloatingChatBubble = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ===== GESTIONNAIRES D'ÉVÉNEMENTS =====
+  // ===== GESTIONNAIRES D'ÉVÉNEMENTS RESPONSIVE =====
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -771,7 +800,7 @@ const FloatingChatBubble = ({
   );
 
   const imageViewerModal = imageViewer.isOpen && (
-    <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/95 z-[99999] flex items-center justify-center">
       <button
         onClick={closeImageViewer}
         className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
@@ -819,7 +848,7 @@ const FloatingChatBubble = ({
         {hiddenInputs}
         <button
           onClick={handleOpen}
-          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 z-50"
+          className={`fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 z-50 p-4`}
           title="Ouvrir les conversations"
         >
           <MessageCircle className="w-7 h-7" />
@@ -840,7 +869,7 @@ const FloatingChatBubble = ({
         {hiddenInputs}
         <button
           onClick={() => setIsMinimized(false)}
-          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 z-50"
+          className={`fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 z-50 p-4`}
         >
           <MessageCircle className="w-7 h-7" />
           {chats.filter((c) => (c.unreadcount || c.unread || 0) > 0).length >
@@ -859,9 +888,29 @@ const FloatingChatBubble = ({
       {hiddenInputs}
       {imageViewerModal}
 
-      <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
+      {/* Overlay pour mobile */}
+      {isMobile && (
+        <div
+          className="fixed inset-0 bg-black/10 z-[9998]"
+          onClick={handleClose}
+        />
+      )}
+
+      <div
+        className={`${
+          isMobile
+            ? "fixed inset-0 w-full h-full bg-white z-[9999] flex flex-col"
+            : isTablet
+            ? "fixed bottom-6 right-6 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200"
+            : "fixed bottom-6 right-6 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200"
+        }`}
+      >
         {/* ===== EN-TÊTE ===== */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-2xl flex items-center justify-between">
+        <div
+          className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 ${
+            isMobile ? "" : "rounded-t-2xl"
+          } flex items-center justify-between flex-shrink-0`}
+        >
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {!showChatList && (
               <button
@@ -894,13 +943,15 @@ const FloatingChatBubble = ({
           <div className="flex items-center gap-1">
             {!showChatList && (
               <>
-                <button
-                  onClick={handleMaximize}
-                  className="hover:bg-white/20 p-2 rounded-lg transition-colors"
-                  title="Ouvrir en plein écran"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
+                {!isMobile && (
+                  <button
+                    onClick={handleMaximize}
+                    className="hover:bg-white/20 p-2 rounded-lg transition-colors"
+                    title="Ouvrir en plein écran"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                )}
                 {!isCreatingNewChat && selectedChatId && (
                   <div className="relative" ref={menuRef}>
                     <button
@@ -935,576 +986,627 @@ const FloatingChatBubble = ({
                 )}
               </>
             )}
-            <button
-              onClick={handleMinimize}
-              className="hover:bg-white/20 p-2 rounded-lg transition-colors"
-              title="Réduire"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleClose}
-              className="hover:bg-white/20 p-2 rounded-lg transition-colors"
-              title="Fermer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {!isMobile && (
+              <>
+                <button
+                  onClick={handleMinimize}
+                  className="hover:bg-white/20 p-2 rounded-lg transition-colors"
+                  title="Réduire"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="hover:bg-white/20 p-2 rounded-lg transition-colors"
+                  title="Fermer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            )}
+            {isMobile && (
+              <button
+                onClick={handleClose}
+                className="hover:bg-white/20 p-2 rounded-lg transition-colors"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* ===== CONTENU ===== */}
-        {showChatList ? (
-          /* LISTE DES CONVERSATIONS */
-          <div className="flex-1 overflow-y-auto">
-            {loading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                <span className="ml-2 text-gray-500">Chargement...</span>
-              </div>
-            ) : chats.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 px-6">
-                <MessageCircle className="w-16 h-16 mb-3" />
-                <p className="text-sm text-center font-medium">
-                  Aucune conversation
-                </p>
-                <p className="text-xs text-center mt-1">
-                  Lorsqu'un utilisateur vous contactera, vos conversations
-                  apparaîtront ici.
-                </p>
-              </div>
-            ) : (
-              chats.map((chat) => {
-                const displayInfo = getVisitorDisplayName(chat);
-                const unreadCount = chat.unreadcount || chat.unread || 0;
-
-                return (
-                  <div
-                    key={chat.id}
-                    onClick={() => handleSelectChat(chat.id)}
-                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      selectedChatId === chat.id ? "bg-blue-50" : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={getVisitorAvatar(
-                            chat.isanonymous,
-                            chat.visitorname || chat.name
-                          )}
-                          alt="Avatar"
-                          className="w-12 h-12 rounded-full"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 truncate">
-                              {displayInfo.mainName}
-                            </h4>
-                            {chat.isimportant && (
-                              <Flag className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          {chat.lastmessageat && (
-                            <span className="text-xs text-gray-400 flex-shrink-0">
-                              {formatRelativeTime(chat.lastmessageat)}
-                            </span>
-                          )}
-                        </div>
-
-                        {displayInfo.subName && (
-                          <p className="text-xs text-blue-600 mb-1 truncate">
-                            {displayInfo.subName}
-                          </p>
-                        )}
-
-                        {chat.dossierTitre && (
-                          <p className="text-xs text-gray-500 mb-1 truncate">
-                            {chat.dossierTitre}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                          <p
-                            className={`text-sm truncate ${
-                              unreadCount > 0
-                                ? "text-gray-900 font-medium"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {getLastMessage(chat)}
-                          </p>
-                          {unreadCount > 0 && (
-                            <span className="ml-2 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
-                              {unreadCount}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        ) : (
-          /* CONVERSATION ACTIVE */
-          <>
-            {activeChat && !isCreatingNewChat && (
-              <div className="border-b border-gray-200 p-3 bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={getVisitorAvatar(
-                      activeChat.isanonymous,
-                      activeChat.visitorname || activeChat.name
-                    )}
-                    alt="Avatar"
-                    className="w-10 h-10 rounded-full"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm text-gray-900 truncate">
-                        {activeChat.isanonymous
-                          ? "Anonyme"
-                          : activeChat.visitorname ||
-                            activeChat.name ||
-                            "Visiteur"}
-                      </p>
-                      {activeChat.isimportant && (
-                        <Flag className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                      )}
-                    </div>
-                    {activeChat.reference && (
-                      <p className="text-xs text-blue-600 truncate">
-                        {activeChat.reference}
-                        {activeChat.dossierTitre && (
-                          <span className="text-gray-500 ml-1">
-                            • {activeChat.dossierTitre}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                  </div>
+        {/* ===== CONTENU PRINCIPAL (scrollable) ===== */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {showChatList ? (
+            /* LISTE DES CONVERSATIONS */
+            <div className="flex-1 overflow-y-auto">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  <span className="ml-2 text-gray-500">Chargement...</span>
                 </div>
-              </div>
-            )}
-
-            {isCreatingNewChat && pendingReference && (
-              <div className="border-b border-blue-200 p-3 bg-blue-50">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">
-                      Nouvelle conversation
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Référence: <strong>{pendingReference}</strong>
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Écrivez votre message ci-dessous pour démarrer la
-                      conversation.
-                    </p>
-                  </div>
+              ) : chats.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400 px-6">
+                  <MessageCircle className="w-16 h-16 mb-3" />
+                  <p className="text-sm text-center font-medium">
+                    Aucune conversation
+                  </p>
+                  <p className="text-xs text-center mt-1">
+                    Lorsqu'un utilisateur vous contactera, vos conversations
+                    apparaîtront ici.
+                  </p>
                 </div>
-              </div>
-            )}
-
-            <div
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-3"
-            >
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <p>{error}</p>
-                </div>
-              )}
-
-              {activeChat?.messages?.length > 0 ? (
-                activeChat.messages.map((msg, index) => {
-                  const sender = msg.sender;
-                  const senderType = msg.sendertype || msg.sendertype;
-                  const isVisitor =
-                    sender === "visitor" || senderType === "visitor";
-                  const isMe =
-                    sender === "me" ||
-                    senderType === "support" ||
-                    senderType === "admin" ||
-                    !isVisitor;
-                  const fileUrl = resolveChatFileUrl(getMsgFileInfo(msg));
-                  const messageContent = msg.text || msg.content;
-
-                  const currentDateStr =
-                    msg.createdat || msg.createdat || msg.time;
-                  let dateLabel = null;
-
-                  if (currentDateStr) {
-                    const prevM = activeChat.messages[index - 1];
-                    const prevD = prevM
-                      ? prevM.createdat || prevM.createdat || prevM.time
-                      : null;
-
-                    try {
-                      const currDate = new Date(currentDateStr);
-                      const prevDate = prevD ? new Date(prevD) : null;
-
-                      if (
-                        !isNaN(currDate.getTime()) &&
-                        (!prevDate ||
-                          !isSameDay(currDate, prevDate) ||
-                          isNaN(prevDate.getTime()))
-                      ) {
-                        dateLabel = getMessageDateLabel(currentDateStr);
-                      }
-                    } catch (e) {
-                      // Ignorer erreur
-                    }
-                  }
+              ) : (
+                chats.map((chat) => {
+                  const displayInfo = getVisitorDisplayName(chat);
+                  const unreadCount = chat.unreadcount || chat.unread || 0;
 
                   return (
-                    <React.Fragment key={msg.id || index}>
-                      {dateLabel && (
-                        <div className="flex justify-center my-3">
-                          <span className="bg-white text-gray-500 text-xs font-medium px-3 py-1 rounded-lg shadow-sm border border-gray-200">
-                            {dateLabel}
-                          </span>
+                    <div
+                      key={chat.id}
+                      onClick={() => handleSelectChat(chat.id)}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                        selectedChatId === chat.id ? "bg-blue-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <img
+                            src={getVisitorAvatar(
+                              chat.isanonymous,
+                              chat.visitorname || chat.name
+                            )}
+                            alt="Avatar"
+                            className="w-12 h-12 rounded-full"
+                          />
                         </div>
-                      )}
-
-                      <div
-                        className={`flex ${
-                          isMe ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        {!isMe && (
-                          <div className="flex-shrink-0 self-end mb-1">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                              {activeChat.isanonymous ||
-                              !activeChat.visitorname ||
-                              activeChat.visitorname === "Anonyme" ? (
-                                <User className="w-5 h-5 text-gray-500" />
-                              ) : (
-                                <span className="text-xs font-bold text-gray-600">
-                                  {(activeChat.visitorname || "V")
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 truncate">
+                                {displayInfo.mainName}
+                              </h4>
+                              {chat.isimportant && (
+                                <Flag className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                               )}
                             </div>
+                            {chat.lastmessageat && (
+                              <span className="text-xs text-gray-400 flex-shrink-0">
+                                {isMobile
+                                  ? formatTime(chat.lastmessageat)
+                                  : formatRelativeTime(chat.lastmessageat)}
+                              </span>
+                            )}
+                          </div>
+
+                          {displayInfo.subName && (
+                            <p className="text-xs text-blue-600 mb-1 truncate">
+                              {displayInfo.subName}
+                            </p>
+                          )}
+
+                          {chat.dossierTitre && (
+                            <p className="text-xs text-gray-500 mb-1 truncate">
+                              {chat.dossierTitre}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between">
+                            <p
+                              className={`text-sm truncate ${
+                                unreadCount > 0
+                                  ? "text-gray-900 font-medium"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {isMobile && getLastMessage(chat).length > 30
+                                ? getLastMessage(chat).substring(0, 30) + "..."
+                                : getLastMessage(chat)}
+                            </p>
+                            {unreadCount > 0 && (
+                              <span className="ml-2 bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+                                {unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            /* CONVERSATION ACTIVE */
+            <>
+              {activeChat && !isCreatingNewChat && (
+                <div className="border-b border-gray-200 p-3 bg-gray-50 flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={getVisitorAvatar(
+                        activeChat.isanonymous,
+                        activeChat.visitorname || activeChat.name
+                      )}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm text-gray-900 truncate">
+                          {activeChat.isanonymous
+                            ? "Anonyme"
+                            : activeChat.visitorname ||
+                              activeChat.name ||
+                              "Visiteur"}
+                        </p>
+                        {activeChat.isimportant && (
+                          <Flag className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                        )}
+                      </div>
+                      {activeChat.reference && (
+                        <p className="text-xs text-blue-600 truncate">
+                          {activeChat.reference}
+                          {activeChat.dossierTitre && (
+                            <span className="text-gray-500 ml-1">
+                              • {activeChat.dossierTitre}
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isCreatingNewChat && pendingReference && (
+                <div className="border-b border-blue-200 p-3 bg-blue-50 flex-shrink-0">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">
+                        Nouvelle conversation
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Référence: <strong>{pendingReference}</strong>
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Écrivez votre message ci-dessous pour démarrer la
+                        conversation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ZONE DES MESSAGES (scrollable) */}
+              <div
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-3"
+                style={{
+                  paddingBottom: selectedFile ? "180px" : "120px",
+                }}
+              >
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p>{error}</p>
+                  </div>
+                )}
+
+                {activeChat?.messages?.length > 0 ? (
+                  activeChat.messages.map((msg, index) => {
+                    const sender = msg.sender;
+                    const senderType = msg.sendertype || msg.sendertype;
+                    const isVisitor =
+                      sender === "visitor" || senderType === "visitor";
+                    const isMe =
+                      sender === "me" ||
+                      senderType === "support" ||
+                      senderType === "admin" ||
+                      !isVisitor;
+                    const fileUrl = resolveChatFileUrl(getMsgFileInfo(msg));
+                    const messageContent = msg.text || msg.content;
+
+                    const currentDateStr =
+                      msg.createdat || msg.createdat || msg.time;
+                    let dateLabel = null;
+
+                    if (currentDateStr) {
+                      const prevM = activeChat.messages[index - 1];
+                      const prevD = prevM
+                        ? prevM.createdat || prevM.createdat || prevM.time
+                        : null;
+
+                      try {
+                        const currDate = new Date(currentDateStr);
+                        const prevDate = prevD ? new Date(prevD) : null;
+
+                        if (
+                          !isNaN(currDate.getTime()) &&
+                          (!prevDate ||
+                            !isSameDay(currDate, prevDate) ||
+                            isNaN(prevDate.getTime()))
+                        ) {
+                          dateLabel = getMessageDateLabel(currentDateStr);
+                        }
+                      } catch (e) {
+                        // Ignorer erreur
+                      }
+                    }
+
+                    return (
+                      <React.Fragment key={msg.id || index}>
+                        {dateLabel && (
+                          <div className="flex justify-center my-3">
+                            <span className="bg-white text-gray-500 text-xs font-medium px-3 py-1 rounded-lg shadow-sm border border-gray-200">
+                              {dateLabel}
+                            </span>
                           </div>
                         )}
 
-                        <div className={`max-w-[75%] ${!isMe ? "ml-2" : ""}`}>
+                        <div
+                          className={`flex ${
+                            isMe ? "justify-end" : "justify-start"
+                          }`}
+                        >
+                          {!isMe && (
+                            <div className="flex-shrink-0 self-end mb-1">
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                {activeChat.isanonymous ||
+                                !activeChat.visitorname ||
+                                activeChat.visitorname === "Anonyme" ? (
+                                  <User className="w-5 h-5 text-gray-500" />
+                                ) : (
+                                  <span className="text-xs font-bold text-gray-600">
+                                    {(activeChat.visitorname || "V")
+                                      .charAt(0)
+                                      .toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                           <div
-                            className={`rounded-2xl shadow-sm overflow-hidden ${
-                              isMe
-                                ? "bg-blue-600 text-white rounded-br-sm"
-                                : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
-                            }`}
+                            className={`${!isMe ? "ml-2" : ""}`}
+                            style={{
+                              maxWidth: isMobile ? "85%" : "75%",
+                            }}
                           >
-                            {msg.type === "image" && fileUrl && (
-                              <div className="relative group">
-                                <img
-                                  src={fileUrl}
-                                  alt={getMsgFileInfo(msg)?.name || "Image"}
-                                  className="w-full max-w-xs cursor-pointer rounded-lg"
-                                  style={{
-                                    maxHeight: "300px",
-                                    objectFit: "cover",
-                                  }}
-                                  onClick={() => openImageViewer(fileUrl)}
-                                  onError={(e) => {
-                                    console.error(
-                                      "Erreur chargement image:",
-                                      fileUrl
-                                    );
-                                    e.target.src =
-                                      "https://via.placeholder.com/300x200?text=Image+non+disponible";
-                                  }}
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center rounded-lg">
-                                  <button
-                                    onClick={() => openImageViewer(fileUrl)}
-                                    className="opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all bg-white/90 hover:bg-white p-2 rounded-full shadow-lg"
-                                  >
-                                    <ZoomIn className="w-5 h-5 text-gray-800" />
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {msg.type === "video" && fileUrl && (
-                              <div className="relative bg-black rounded-lg overflow-hidden max-w-xs">
-                                <video
-                                  controls
-                                  className="w-full"
-                                  style={{ maxHeight: "250px" }}
-                                  preload="metadata"
-                                  onError={() =>
-                                    console.error(
-                                      "Erreur chargement vidéo:",
-                                      fileUrl
-                                    )
-                                  }
-                                >
-                                  <source
-                                    src={fileUrl}
-                                    type={
-                                      getMsgFileInfo(msg)?.type || "video/mp4"
-                                    }
-                                  />
-                                  Votre navigateur ne supporte pas la lecture
-                                  vidéo.
-                                </video>
-                                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                  <Play className="w-3 h-3" />
-                                  Vidéo
-                                </div>
-                              </div>
-                            )}
-
-                            {msg.type === "file" && fileUrl && (
-                              <div
-                                className={`p-3 ${
-                                  isMe ? "bg-blue-700" : "bg-gray-50"
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={`p-2 rounded-lg ${
-                                      isMe
-                                        ? "bg-blue-800"
-                                        : "bg-white border border-gray-200"
-                                    }`}
-                                  >
-                                    <Paperclip
-                                      className={`w-5 h-5 ${
-                                        isMe ? "text-white" : "text-gray-600"
-                                      }`}
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p
-                                      className={`text-sm font-medium truncate ${
-                                        isMe ? "text-white" : "text-gray-800"
-                                      }`}
-                                    >
-                                      {getMsgFileInfo(msg)?.name || "Fichier"}
-                                    </p>
-                                    {getMsgFileInfo(msg)?.filesize && (
-                                      <p
-                                        className={`text-xs ${
-                                          isMe
-                                            ? "text-blue-100"
-                                            : "text-gray-500"
-                                        }`}
-                                      >
-                                        {formatFileSize(
-                                          getMsgFileInfo(msg).filesize
-                                        )}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex gap-2 mt-3">
-                                  <a
-                                    href={fileUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                                      isMe
-                                        ? "bg-blue-800 hover:bg-blue-900 text-white"
-                                        : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-200"
-                                    }`}
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    Voir
-                                  </a>
-                                  <a
-                                    href={fileUrl}
-                                    download
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                                      isMe
-                                        ? "bg-white/20 hover:bg-white/30 text-white"
-                                        : "bg-green-600 hover:bg-green-700 text-white"
-                                    }`}
-                                  >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Télécharger
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-
-                            {messageContent && (
-                              <div className="px-4 py-3">
-                                <p className="text-sm whitespace-pre-wrap break-words">
-                                  {messageContent}
-                                </p>
-                              </div>
-                            )}
-
                             <div
-                              className={`px-4 pb-2 flex items-center ${
-                                isMe ? "justify-end" : "justify-start"
-                              } gap-1 text-[10px] ${
-                                isMe ? "text-blue-100" : "text-gray-400"
+                              className={`rounded-2xl shadow-sm overflow-hidden ${
+                                isMe
+                                  ? "bg-blue-600 text-white rounded-br-sm"
+                                  : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
                               }`}
                             >
-                              <span>{formatTime(currentDateStr)}</span>
-                              {isMe && (
-                                <MessageStatusIcon status={msg.status} />
+                              {msg.type === "image" && fileUrl && (
+                                <div className="relative group">
+                                  <img
+                                    src={fileUrl}
+                                    alt={getMsgFileInfo(msg)?.name || "Image"}
+                                    className="w-full cursor-pointer rounded-lg"
+                                    style={{
+                                      maxHeight: isMobile ? "200px" : "300px",
+                                      maxWidth: isMobile ? "250px" : "320px",
+                                      objectFit: "cover",
+                                    }}
+                                    onClick={() => openImageViewer(fileUrl)}
+                                    onError={(e) => {
+                                      console.error(
+                                        "Erreur chargement image:",
+                                        fileUrl
+                                      );
+                                      e.target.src =
+                                        "https://via.placeholder.com/300x200?text=Image+non+disponible";
+                                    }}
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center rounded-lg">
+                                    <button
+                                      onClick={() => openImageViewer(fileUrl)}
+                                      className="opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all bg-white/90 hover:bg-white p-2 rounded-full shadow-lg"
+                                    >
+                                      <ZoomIn className="w-5 h-5 text-gray-800" />
+                                    </button>
+                                  </div>
+                                </div>
                               )}
+
+                              {msg.type === "video" && fileUrl && (
+                                <div className="relative bg-black rounded-lg overflow-hidden">
+                                  <video
+                                    controls
+                                    className="w-full"
+                                    style={{
+                                      maxHeight: isMobile ? "200px" : "250px",
+                                    }}
+                                    preload="metadata"
+                                    onError={() =>
+                                      console.error(
+                                        "Erreur chargement vidéo:",
+                                        fileUrl
+                                      )
+                                    }
+                                  >
+                                    <source
+                                      src={fileUrl}
+                                      type={
+                                        getMsgFileInfo(msg)?.type || "video/mp4"
+                                      }
+                                    />
+                                    Votre navigateur ne supporte pas la lecture
+                                    vidéo.
+                                  </video>
+                                  <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                    <Play className="w-3 h-3" />
+                                    Vidéo
+                                  </div>
+                                </div>
+                              )}
+
+                              {msg.type === "file" && fileUrl && (
+                                <div
+                                  className={`p-3 ${
+                                    isMe ? "bg-blue-700" : "bg-gray-50"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`p-2 rounded-lg ${
+                                        isMe
+                                          ? "bg-blue-800"
+                                          : "bg-white border border-gray-200"
+                                      }`}
+                                    >
+                                      <Paperclip
+                                        className={`w-5 h-5 ${
+                                          isMe ? "text-white" : "text-gray-600"
+                                        }`}
+                                      />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p
+                                        className={`text-sm font-medium truncate ${
+                                          isMe ? "text-white" : "text-gray-800"
+                                        }`}
+                                      >
+                                        {getMsgFileInfo(msg)?.name || "Fichier"}
+                                      </p>
+                                      {getMsgFileInfo(msg)?.filesize && (
+                                        <p
+                                          className={`text-xs ${
+                                            isMe
+                                              ? "text-blue-100"
+                                              : "text-gray-500"
+                                          }`}
+                                        >
+                                          {formatFileSize(
+                                            getMsgFileInfo(msg).filesize
+                                          )}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div
+                                    className={`flex gap-2 mt-3 ${
+                                      isMobile ? "flex-col" : ""
+                                    }`}
+                                  >
+                                    <a
+                                      href={fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                        isMe
+                                          ? "bg-blue-800 hover:bg-blue-900 text-white"
+                                          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-200"
+                                      }`}
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      Voir
+                                    </a>
+                                    <a
+                                      href={fileUrl}
+                                      download
+                                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                        isMe
+                                          ? "bg-white/20 hover:bg-white/30 text-white"
+                                          : "bg-green-600 hover:bg-green-700 text-white"
+                                      }`}
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                      Télécharger
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+
+                              {messageContent && (
+                                <div className="px-4 py-3">
+                                  <p className="text-sm whitespace-pre-wrap break-words">
+                                    {messageContent}
+                                  </p>
+                                </div>
+                              )}
+
+                              <div
+                                className={`px-4 pb-2 flex items-center ${
+                                  isMe ? "justify-end" : "justify-start"
+                                } gap-1 text-[10px] ${
+                                  isMe ? "text-blue-100" : "text-gray-400"
+                                }`}
+                              >
+                                <span>{formatTime(currentDateStr)}</span>
+                                {isMe && (
+                                  <MessageStatusIcon status={msg.status} />
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </React.Fragment>
-                  );
-                })
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <MessageCircle className="w-12 h-12 mb-2" />
-                  <p className="text-sm">
-                    {isCreatingNewChat
-                      ? "Aucun message pour le moment"
-                      : "Aucun message"}
-                  </p>
-                  <p className="text-xs">
-                    {isCreatingNewChat
-                      ? "Écrivez le premier message"
-                      : "En attente du premier message"}
-                  </p>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                      </React.Fragment>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <MessageCircle className="w-12 h-12 mb-2" />
+                    <p className="text-sm">
+                      {isCreatingNewChat
+                        ? "Aucun message pour le moment"
+                        : "Aucun message"}
+                    </p>
+                    <p className="text-xs">
+                      {isCreatingNewChat
+                        ? "Écrivez le premier message"
+                        : "En attente du premier message"}
+                    </p>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </>
+          )}
+        </div>
 
-            {selectedFile && (
-              <div className="border-t border-gray-200 p-3 bg-white">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    {filePreview && selectedFile.type.startsWith("image/") ? (
-                      <img
-                        src={filePreview}
-                        alt="Preview"
-                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                      />
-                    ) : filePreview &&
-                      selectedFile.type.startsWith("video/") ? (
-                      <video
-                        src={filePreview}
-                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                      />
+        {/* ===== ZONE D'INPUT FIXE EN BAS ===== */}
+        <div
+          ref={inputContainerRef}
+          className="border-t border-gray-200 bg-white flex-shrink-0"
+          style={{
+            position: isMobile ? "fixed" : "relative",
+            bottom: isMobile ? "0" : "auto",
+            left: isMobile ? "0" : "auto",
+            right: isMobile ? "0" : "auto",
+            width: isMobile ? "100%" : "auto",
+            zIndex: 10,
+            boxShadow: isMobile ? "0 -2px 10px rgba(0,0,0,0.1)" : "none",
+          }}
+        >
+          {/* AFFICHAGE DU FICHIER SÉLECTIONNÉ */}
+          {selectedFile && (
+            <div className="p-3 bg-white border-b border-gray-200">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  {filePreview && selectedFile.type.startsWith("image/") ? (
+                    <img
+                      src={filePreview}
+                      alt="Preview"
+                      className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                    />
+                  ) : filePreview && selectedFile.type.startsWith("video/") ? (
+                    <video
+                      src={filePreview}
+                      className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                      <FileText className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
+                  {uploadingFile && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-200"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        {uploadProgress}%
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCancelFile}
+                    disabled={uploadingFile}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                    title="Annuler"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleSendFile}
+                    disabled={uploadingFile}
+                    className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                    title="Envoyer"
+                  >
+                    {uploadingFile ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
-                        <FileText className="w-8 h-8 text-gray-400" />
-                      </div>
+                      <Send className="w-5 h-5" />
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(selectedFile.size)}
-                    </p>
-                    {uploadingFile && (
-                      <div className="mt-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-200"
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-[10px] text-gray-500 mt-1">
-                          {uploadProgress}%
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCancelFile}
-                      disabled={uploadingFile}
-                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                      title="Annuler"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={handleSendFile}
-                      disabled={uploadingFile}
-                      className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                      title="Envoyer"
-                    >
-                      {uploadingFile ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Send className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            <div className="border-t border-gray-200 p-3 bg-white">
-              <div className="flex items-end gap-2">
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Joindre un fichier"
-                    disabled={!selectedChatId && !isCreatingNewChat}
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => imageInputRef.current?.click()}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Joindre une image"
-                    disabled={!selectedChatId && !isCreatingNewChat}
-                  >
-                    <ImageIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="flex-1">
-                  <textarea
-                    ref={textareaRef}
-                    rows={1}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Écrivez un message..."
-                    className="w-full resize-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px]"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    disabled={sendingMessage || uploadingFile}
-                  />
-                </div>
-
+          {/* ZONE DE SAISIE DU MESSAGE */}
+          <div className="p-3 bg-white">
+            <div className="flex items-end gap-2">
+              <div className="flex gap-1">
                 <button
-                  onClick={handleSendMessage}
-                  disabled={sendingMessage || uploadingFile || !message.trim()}
-                  className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Envoyer"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Joindre un fichier"
+                  disabled={!selectedChatId && !isCreatingNewChat}
                 >
-                  {sendingMessage ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
+                  <Paperclip className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Joindre une image"
+                  disabled={!selectedChatId && !isCreatingNewChat}
+                >
+                  <ImageIcon className="w-5 h-5" />
                 </button>
               </div>
+
+              <div className="flex-1">
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Écrivez un message..."
+                  className="w-full resize-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={sendingMessage || uploadingFile}
+                />
+              </div>
+
+              <button
+                onClick={handleSendMessage}
+                disabled={sendingMessage || uploadingFile || !message.trim()}
+                className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Envoyer"
+              >
+                {sendingMessage ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </button>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </>
   );

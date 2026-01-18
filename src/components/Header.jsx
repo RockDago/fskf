@@ -1,42 +1,69 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Bell,
-  ChevronDown,
-  LogOut,
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Settings,
-  User,
-} from "lucide-react";
-import API, { API_URL } from "../config/axios"; // ✅ Import API_URL
-import LogoFosika from "../assets/images/logo fosika.png";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Bell, ChevronDown, LogOut, User, Menu } from "lucide-react";
+import API, { API_URL } from "../config/axios";
 
 const Header = ({
   onNavigateToNotifications,
   onDeconnexion,
   onNavigateToProfile,
-  onNavigateToSettings,
   adminData,
   userRole = "admin",
+  onToggleSidebar,
+  sidebarCollapsed,
 }) => {
-  const [notificationDropdownOpen, setNotificationDropdownOpen] =
+  const [showNotificationsDropdown, setShowNotificationsDropdown] =
     useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [recentNotifications, setRecentNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showAvatar, setShowAvatar] = useState(false);
-  const [avatarVersion, setAvatarVersion] = useState(0);
+  const [profileImage, setProfileImage] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [userData, setUserData] = useState(adminData || {});
 
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+
+  // ✅ Détection mobile ET tablette
+  useEffect(() => {
+    const checkMobile = () => {
+      // ✅ Masquer le bouton sur mobile et tablette (< 1024px)
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // ✅ Gestion des clics en dehors des dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target))
+        setShowNotificationsDropdown(false);
+      if (profileRef.current && !profileRef.current.contains(e.target))
+        setShowProfileMenu(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ Charger le profil utilisateur
   const fetchUserProfile = useCallback(async () => {
     try {
       const response = await API.get("/profile");
       if (response.data.success) {
         setUserData(response.data.data);
-        setAvatarVersion((prev) => prev + 1);
+
+        // Charger l'image de profil
+        const avatarUrl = getAvatarUrl(
+          response.data.data.avatar_url || response.data.data.avatar
+        );
+        if (avatarUrl) {
+          setProfileImage(avatarUrl);
+        }
       }
     } catch (error) {
       // Erreur ignorée
@@ -57,6 +84,39 @@ const Header = ({
     };
   }, [fetchUserProfile]);
 
+  // ✅ URL de l'avatar
+  const getAvatarUrl = useCallback(
+    (path) => {
+      if (!path) return null;
+      let url = path;
+
+      if (url.startsWith("http")) return `${url}?t=${Date.now()}`;
+
+      if (url.includes("storage/avatars/")) {
+        if (url.startsWith("/")) return `${API_URL}${url}`;
+        return `${API_URL}/${url}`;
+      }
+
+      if (!url.startsWith("/")) url = `/${url}`;
+      if (!url.startsWith("/storage")) url = `/storage${url}`;
+
+      return `${API_URL}${url}?t=${Date.now()}`;
+    },
+    [API_URL]
+  );
+
+  // ✅ Initiales pour l'avatar par défaut
+  const getInitials = () => {
+    const nom = userData.lastname || userData.last_name || "";
+    const prenom = userData.firstname || userData.first_name || "";
+    const name = userData.name || "";
+
+    if (nom && prenom) return `${nom[0]}${prenom[0]}`.toUpperCase();
+    if (name) return name.substring(0, 2).toUpperCase();
+    return "U";
+  };
+
+  // ✅ Nom complet
   const getFullName = () => {
     if (userData.name && userData.name.trim() !== "") {
       return userData.name.trim();
@@ -66,7 +126,7 @@ const Header = ({
     const prenom = userData.firstname || userData.first_name || "";
 
     if (nom || prenom) {
-      return `${nom} ${prenom}`.trim();
+      return `${prenom} ${nom}`.trim();
     }
 
     return userData.name || "Utilisateur";
@@ -74,63 +134,14 @@ const Header = ({
 
   const fullName = getFullName();
 
-  const effectiveRole = (
-    userData.role ||
-    userData.formattedrole ||
-    userRole ||
-    "admin"
-  ).toLowerCase();
-
-  const roleColors = {
-    admin: {
-      bg: "bg-blue-600",
-      text: "text-blue-600",
-      light: "bg-blue-50",
-      border: "border-blue-200",
-      badge: "bg-blue-100 text-blue-800",
-      ring: "ring-blue-500",
-    },
-    agent: {
-      bg: "bg-green-600",
-      text: "text-green-600",
-      light: "bg-green-50",
-      border: "border-green-200",
-      badge: "bg-green-100 text-green-800",
-      ring: "ring-green-500",
-    },
-    investigateur: {
-      bg: "bg-purple-600",
-      text: "text-purple-600",
-      light: "bg-purple-50",
-      border: "border-purple-200",
-      badge: "bg-purple-100 text-purple-800",
-      ring: "ring-purple-500",
-    },
+  // ✅ Rôle formaté
+  const getRoleDisplayName = () => {
+    if (userData.formattedrole) return userData.formattedrole;
+    const role = userData.role || userRole || "admin";
+    return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
-  const currentRole = roleColors[effectiveRole] || roleColors.admin;
-
-  const performLogout = async () => {
-    try {
-      await API.post("/auth/logout").catch(() => {});
-    } catch (err) {
-      // Erreur ignorée
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      if (typeof onDeconnexion === "function") {
-        onDeconnexion();
-      } else {
-        window.location.href = "/login";
-      }
-    }
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false);
-    performLogout();
-  };
-
+  // ✅ Charger les notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -150,7 +161,8 @@ const Header = ({
     return () => clearInterval(interval);
   }, []);
 
-  const markAsRead = async (id) => {
+  // ✅ Marquer comme lu
+  const handleMarkAsRead = async (id) => {
     try {
       await API.post(`/notifications/${id}/read`);
       setRecentNotifications((prev) =>
@@ -162,345 +174,256 @@ const Header = ({
     }
   };
 
-  // ✅ Utilisation de API_URL au lieu de localhost en dur
-  const getAvatarUrl = useCallback(
-    (path) => {
-      if (!path) return null;
+  // ✅ Marquer toutes comme lues
+  const handleMarkAllAsRead = () => {
+    setRecentNotifications((prev) =>
+      prev.map((n) => ({ ...n, status: "read" }))
+    );
+    setUnreadCount(0);
+  };
 
-      let url = path;
-
-      if (url.startsWith("http")) return `${url}?t=${Date.now()}`;
-
-      // ✅ Utilise API_URL depuis la config axios
-      if (url.includes("storage/avatars/")) {
-        if (url.startsWith("/")) return `${API_URL}${url}`;
-        return `${API_URL}/${url}`;
+  // ✅ Logique de déconnexion
+  const performLogout = async () => {
+    try {
+      await API.post("/auth/logout").catch(() => {});
+    } catch (err) {
+      // Erreur ignorée
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+      if (typeof onDeconnexion === "function") {
+        onDeconnexion();
+      } else {
+        window.location.href = "/login";
       }
-
-      if (!url.startsWith("/")) url = `/${url}`;
-      if (!url.startsWith("/storage")) url = `/storage${url}`;
-
-      return `${API_URL}${url}?v=${avatarVersion}&t=${Date.now()}`;
-    },
-    [avatarVersion]
-  );
-
-  useEffect(() => {
-    const rawPath = userData.avatar_url || userData.avatar;
-    if (!rawPath) {
-      setShowAvatar(false);
-      return;
-    }
-
-    const url = getAvatarUrl(rawPath);
-    const img = new Image();
-    img.onload = () => setShowAvatar(true);
-    img.onerror = () => setShowAvatar(false);
-    img.src = url;
-  }, [userData, avatarVersion, getAvatarUrl]);
-
-  const avatarUrl = getAvatarUrl(userData.avatar_url || userData.avatar);
-
-  const getInitials = () => {
-    const nom = userData.lastname || userData.last_name;
-    const prenom = userData.firstname || userData.first_name;
-    const name = userData.name;
-
-    if (nom && prenom) return `${nom[0]}${prenom[0]}`.toUpperCase();
-    if (name) return name.substring(0, 2).toUpperCase();
-    return "U";
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case "nouveau_signalement":
-        return <FileText className="w-5 h-5 text-blue-500" />;
-      case "probleme_critique":
-        return <AlertTriangle className="w-5 h-5 text-red-500" />;
-      default:
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
     }
   };
 
-  const getRoleDisplayName = (role) => {
-    if (userData.formattedrole) return userData.formattedrole;
-    const r = role || effectiveRole;
-    return r.charAt(0).toUpperCase() + r.slice(1);
+  const handleLogoutRequest = () => {
+    setShowProfileMenu(false);
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    performLogout();
   };
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-50 shadow-sm">
-        <div className="flex items-center ml-6">
-          <img src={LogoFosika} alt="FOSIKA" className="h-28 object-contain" />
-        </div>
+      {/* HEADER - IDENTIQUE À LA NAVBAR.JSX */}
+      <header
+        className="fixed top-0 right-0 h-16 md:h-20 bg-white shadow-sm z-30 flex items-center justify-between px-4 md:px-8 border-b border-gray-200 transition-all duration-300"
+        style={{
+          left: isMobile ? "0" : sidebarCollapsed ? "5rem" : "18rem",
+        }}
+      >
+        <div className="absolute inset-0 pointer-events-none lg:hidden" />
 
-        <div className="flex items-center space-x-6">
+        {/* ✅ Burger Mobile - MASQUÉ SUR TABLETTE (≥ 768px) */}
+        {isMobile && (
+          <div className="flex items-center">
+            <button
+              onClick={onToggleSidebar}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg xl:hidden" // ✅ Changé de lg:hidden à xl:hidden
+            >
+              <Menu className="text-xl" />
+            </button>
+          </div>
+        )}
+
+        {/* Espace vide pour centrer le contenu sur desktop/tablette */}
+        {!isMobile && (
+          <div className="w-10"></div> // ✅ Espace réservé pour équilibrer le layout
+        )}
+
+        {/* Droite : Notifs & Profil */}
+        <div className="flex items-center space-x-3 md:space-x-6">
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() =>
-                setNotificationDropdownOpen(!notificationDropdownOpen)
+                setShowNotificationsDropdown(!showNotificationsDropdown)
               }
-              className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="relative p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-50 transition-colors"
             >
-              <Bell className="w-6 h-6 text-gray-600" />
+              <Bell className="text-lg md:text-xl" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 h-5 w-5 rounded-full text-xs font-bold flex items-center justify-center bg-red-600 text-white shadow-sm ring-2 ring-white">
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
                   {unreadCount}
                 </span>
               )}
             </button>
 
-            {notificationDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setNotificationDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl py-2 z-20 max-h-96 overflow-y-auto border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h3 className="font-semibold text-gray-700">
-                      Notifications
-                    </h3>
-                    {unreadCount > 0 && (
-                      <span
-                        className={`text-xs ${currentRole.text} bg-white px-2 py-1 rounded-full border ${currentRole.border}`}
-                      >
-                        {unreadCount} nouvelle(s)
-                      </span>
-                    )}
-                  </div>
-
-                  {recentNotifications.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-gray-500 text-sm">
-                      <div className="inline-block p-3 bg-gray-50 rounded-full mb-2">
-                        <Bell className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <p>Aucune notification récente</p>
-                    </div>
-                  ) : (
-                    <ul>
-                      {recentNotifications.map((notif) => (
-                        <li
-                          key={notif.id}
-                          className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                            notif.status === "active"
-                              ? `${currentRole.light} bg-opacity-30`
-                              : ""
-                          }`}
-                        >
-                          <button
-                            className="w-full text-left px-4 py-3 flex items-start space-x-3"
-                            onClick={() => {
-                              markAsRead(notif.id);
-                              if (onNavigateToNotifications) {
-                                onNavigateToNotifications();
-                                setNotificationDropdownOpen(false);
-                              }
-                            }}
-                          >
-                            <div className="mt-1">
-                              {getTypeIcon(notif.type)}
-                            </div>
-                            <div className="flex-1">
-                              <p
-                                className={`text-sm ${
-                                  notif.status === "active"
-                                    ? "font-semibold text-gray-800"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                {notif.message}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                {new Date(notif.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                            {notif.status === "active" && (
-                              <div
-                                className={`w-2 h-2 rounded-full ${currentRole.bg} mt-2 shadow-sm`}
-                              />
-                            )}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+            {/* Dropdown Notifications */}
+            {showNotificationsDropdown && (
+              <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                  <h3 className="font-bold text-gray-800">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Tout marquer comme lu
+                    </button>
                   )}
                 </div>
-              </>
+
+                <div className="max-h-96 overflow-y-auto">
+                  {recentNotifications.length > 0 ? (
+                    recentNotifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
+                          notif.status === "active" ? "bg-blue-50/50" : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-800">
+                              {notif.title || "Notification"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {notif.message}
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-2">
+                              {new Date(notif.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {notif.status === "active" && (
+                              <button
+                                onClick={() => handleMarkAsRead(notif.id)}
+                                className="text-blue-500 hover:text-blue-700"
+                                title="Marquer comme lu"
+                              >
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-sm text-gray-400">
+                      <Bell className="mx-auto text-3xl mb-2 opacity-30" />
+                      <p>Aucune notification</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* User Menu */}
-          <div className="relative pl-4 border-l border-gray-200">
+          {/* Profil */}
+          <div className="relative" ref={profileRef}>
             <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center space-x-3 hover:bg-gray-50 p-1.5 rounded-full transition-colors pr-3"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center space-x-2 md:space-x-3 p-1.5 pr-2 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
             >
-              {showAvatar ? (
-                <img
-                  src={avatarUrl}
-                  alt="Profil"
-                  className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-opacity-50 ${currentRole.ring}`}
-                />
-              ) : (
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${currentRole.bg} text-white font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-white`}
-                >
-                  {getInitials()}
-                </div>
-              )}
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-gray-700 leading-none mb-1">
-                  {fullName}
-                </p>
-                <p className={`text-xs ${currentRole.text} font-medium`}>
-                  {getRoleDisplayName(effectiveRole)}
-                </p>
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-sm overflow-hidden">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profil"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <span className="font-bold text-xs">{getInitials()}</span>
+                )}
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <div className="text-left hidden md:block">
+                <div className="text-sm font-semibold text-gray-700">
+                  {fullName.split(" ")[0] || "Utilisateur"}
+                </div>
+                <div className="text-[10px] text-gray-500">
+                  {getRoleDisplayName()}
+                </div>
+              </div>
+              <ChevronDown className="text-gray-400 text-xs hidden md:block" />
             </button>
 
-            {userDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setUserDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-2xl py-2 z-20 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div
-                    className={`px-6 py-4 ${currentRole.light} border-b ${currentRole.border} mb-2`}
-                  >
-                    <div className="flex items-center space-x-4">
-                      {showAvatar ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-14 h-14 rounded-full object-cover border-4 border-white shadow-md"
-                        />
-                      ) : (
-                        <div
-                          className={`w-14 h-14 rounded-full flex items-center justify-center ${currentRole.bg} text-white font-bold text-xl border-4 border-white shadow-md`}
-                        >
-                          {getInitials()}
-                        </div>
-                      )}
-                      <div className="overflow-hidden">
-                        <p
-                          className="font-bold text-gray-800 truncate"
-                          title={fullName}
-                        >
-                          {fullName}
-                        </p>
-                        <p
-                          className="text-xs text-gray-500 truncate mb-1.5"
-                          title={userData.email}
-                        >
-                          {userData.email || "Email non disponible"}
-                        </p>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${currentRole.badge}`}
-                        >
-                          {getRoleDisplayName(effectiveRole)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="px-2">
-                    <button
-                      onClick={() => {
-                        if (onNavigateToProfile) onNavigateToProfile();
-                        setUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
-                    >
-                      <div className="p-2 bg-gray-100 rounded-lg mr-3 group-hover:bg-white group-hover:shadow-sm transition-all">
-                        <User className="w-4 h-4 text-gray-500 group-hover:text-blue-600" />
-                      </div>
-                      <div className="text-left">
-                        <span className="text-sm font-medium block">
-                          Mon Profil
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          Gérer vos informations
-                        </span>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        if (onNavigateToSettings) onNavigateToSettings();
-                        setUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
-                    >
-                      <div className="p-2 bg-gray-100 rounded-lg mr-3 group-hover:bg-white group-hover:shadow-sm transition-all">
-                        <Settings className="w-4 h-4 text-gray-500 group-hover:text-blue-600" />
-                      </div>
-                      <div className="text-left">
-                        <span className="text-sm font-medium block">
-                          Paramètres
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          Préférences du compte
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="border-t border-gray-100 my-2 mx-2"></div>
-
-                  <div className="px-2 pb-1">
-                    <button
-                      onClick={() => {
-                        setShowLogoutConfirm(true);
-                        setUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
-                    >
-                      <div className="p-2 bg-red-50 rounded-lg mr-3 group-hover:bg-white group-hover:shadow-sm transition-all">
-                        <LogOut className="w-4 h-4 text-red-500" />
-                      </div>
-                      <span className="text-sm font-medium">Déconnexion</span>
-                    </button>
-                  </div>
+            {showProfileMenu && (
+              <div className="absolute right-0 top-12 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden py-2">
+                <div className="px-4 py-3 border-b border-gray-100 mb-1">
+                  <p className="font-semibold text-sm text-gray-800">
+                    {fullName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {userData.email || "Email non disponible"}
+                  </p>
                 </div>
-              </>
+
+                {/* Mon Profil */}
+                <button
+                  onClick={() => {
+                    if (onNavigateToProfile) onNavigateToProfile();
+                    setShowProfileMenu(false);
+                  }}
+                  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors w-full"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Mon Profil</span>
+                </button>
+
+                <div className="border-t border-gray-100 mt-1 pt-1">
+                  <button
+                    onClick={handleLogoutRequest}
+                    className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Déconnexion</span>
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Modale de confirmation */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-all scale-100 border border-gray-100">
-            <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <LogOut className="w-8 h-8 text-red-600 ml-1" />
+      {/* ✅ MODAL DE DÉCONNEXION - IDENTIQUE À LA NAVBAR.JSX */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300">
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 animate-[fadeIn_0.2s_ease-out]"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="p-6 text-center">
+              {/* Icône */}
+              <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6 ring-4 ring-red-50/50">
+                <LogOut className="text-red-500 text-2xl" />
               </div>
+
+              {/* Textes */}
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Déconnexion
               </h3>
-              <p className="text-gray-500">
-                Êtes-vous sûr de vouloir quitter votre session actuelle ?
+              <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                Voulez-vous vraiment quitter ? <br />
+                Vous devrez vous reconnecter pour accéder au tableau de bord.
               </p>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={confirmLogout}
-                className="flex-1 px-4 py-2.5 text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors font-semibold shadow-lg shadow-red-200"
-              >
-                Confirmer
-              </button>
+
+              {/* Boutons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all duration-200"
+                >
+                  Annuler
+                </button>
+
+                <button
+                  onClick={handleConfirmLogout}
+                  className="flex-1 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 border border-transparent rounded-xl hover:bg-red-700 focus:ring-4 focus:ring-red-100 shadow-lg shadow-red-500/30 transition-all duration-200"
+                >
+                  Se déconnecter
+                </button>
+              </div>
             </div>
           </div>
         </div>

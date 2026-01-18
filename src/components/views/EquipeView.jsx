@@ -361,7 +361,7 @@ function ConfirmationModal({
     <div className="fixed inset-0 z-[10000] overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 text-center">
         <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-all duration-300 ease-out"
           aria-hidden="true"
           onClick={onCancel}
         />
@@ -371,8 +371,15 @@ function ConfirmationModal({
         >
           &#8203;
         </span>
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div
+          className="inline-block align-bottom bg-white rounded-2xl text-left 
+                    overflow-hidden shadow-2xl 
+                    transform transition-all duration-300 ease-out
+                    sm:my-8 sm:align-middle 
+                    w-full max-w-[95vw] sm:max-w-lg
+                    border border-gray-100"
+        >
+          <div className="bg-white px-4 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5">
             <div className="sm:flex sm:items-start">
               <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <svg
@@ -403,14 +410,31 @@ function ConfirmationModal({
             <button
               type="button"
               onClick={onConfirm}
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+              className="w-full inline-flex justify-center items-center
+                       rounded-xl border-0 
+                       shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/30
+                       px-5 sm:px-6 py-2.5 sm:py-2 
+                       bg-gradient-to-r from-red-600 to-red-700
+                       text-sm sm:text-sm font-semibold text-white 
+                       hover:from-red-700 hover:to-red-800
+                       focus:outline-none focus:ring-4 focus:ring-red-500/50
+                       transition-all duration-200
+                       sm:ml-3 sm:w-auto"
             >
               {confirmText}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              className="mt-3 sm:mt-0 w-full inline-flex justify-center items-center
+                         rounded-xl border-2 border-gray-300
+                         shadow-sm hover:shadow
+                         px-5 sm:px-6 py-2.5 sm:py-2 
+                         bg-white text-sm sm:text-sm font-semibold text-gray-700 
+                         hover:bg-gray-50 hover:border-gray-400
+                         focus:outline-none focus:ring-4 focus:ring-gray-200
+                         transition-all duration-200
+                         sm:ml-3 sm:w-auto"
             >
               {cancelText}
             </button>
@@ -1476,7 +1500,11 @@ const EquipeView = () => {
 
         {/* Filtres */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div
+            className="bg-white rounded-2xl shadow-sm hover:shadow-md
+                border border-gray-100 p-4 sm:p-5
+                transition-all duration-200"
+          >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
@@ -1484,7 +1512,13 @@ const EquipeView = () => {
                   <input
                     type="text"
                     placeholder="Rechercher un membre..."
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-2 
+                      border-2 border-gray-200 rounded-xl
+                      bg-white text-gray-700 text-sm
+                      shadow-sm hover:shadow
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                      transition-all duration-200
+                      placeholder:text-gray-400"
                     value={filters.search}
                     onChange={(e) =>
                       setFilters((prev) => ({
@@ -1503,7 +1537,20 @@ const EquipeView = () => {
                     departement: e.target.value,
                   }))
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2 
+                      border-2 border-gray-200 rounded-xl
+                      bg-white bg-gradient-to-b from-white to-gray-50
+                      text-gray-700 text-sm font-medium
+                      shadow-sm hover:shadow-md
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                      transition-all duration-200
+                      cursor-pointer
+                      appearance-none
+                      bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                      bg-[length:1.5em_1.5em]
+                      bg-[position:right_0.5rem_center]
+                      bg-no-repeat
+                      pr-10"
               >
                 <option value="">Tous les départements</option>
                 {activeTab === "agents" &&
@@ -1527,7 +1574,20 @@ const EquipeView = () => {
                     statut: e.target.value,
                   }))
                 }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2 
+                      border-2 border-gray-200 rounded-xl
+                      bg-white bg-gradient-to-b from-white to-gray-50
+                      text-gray-700 text-sm font-medium
+                      shadow-sm hover:shadow-md
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                      transition-all duration-200
+                      cursor-pointer
+                      appearance-none
+                      bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                      bg-[length:1.5em_1.5em]
+                      bg-[position:right_0.5rem_center]
+                      bg-no-repeat
+                      pr-10"
               >
                 <option value="">Tous les statuts</option>
                 <option value="actif">Actifs uniquement</option>
@@ -1775,7 +1835,7 @@ const EquipeView = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-all duration-300 ease-out"
                 aria-hidden="true"
                 onClick={closeModal}
               />
@@ -1785,9 +1845,22 @@ const EquipeView = () => {
               >
                 &#8203;
               </span>
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <div
+                className="inline-block align-bottom bg-white rounded-2xl text-left 
+                     overflow-hidden shadow-2xl 
+                     transform transition-all duration-300 ease-out
+                     sm:my-8 sm:align-middle 
+                     w-full max-w-[95vw] sm:max-w-4xl
+                     border border-gray-100"
+              >
+                <div className="bg-white px-4 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5">
+                  <div
+                    className="flex justify-between items-center mb-6 
+                        border-b-2 border-gray-100 pb-4
+                        bg-gradient-to-r from-blue-50/30 to-transparent
+                        -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-5 pt-5
+                        rounded-t-2xl"
+                  >
                     <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
                       {isEditing ? (
                         <>
@@ -1813,7 +1886,7 @@ const EquipeView = () => {
                     {/* Nom / Prénom */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Nom <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1836,7 +1909,7 @@ const EquipeView = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Prénom <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1863,7 +1936,7 @@ const EquipeView = () => {
                     {/* Email / Téléphone */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Email <span className="text-red-500">*</span>
                           {formData.email &&
                             !isEditing &&
@@ -1913,7 +1986,7 @@ const EquipeView = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Téléphone
                         </label>
                         <div className="relative">
@@ -1941,7 +2014,7 @@ const EquipeView = () => {
 
                     {/* Username */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                         Nom d'utilisateur{" "}
                         <span className="text-red-500">*</span>
                         {formData.username &&
@@ -1995,7 +2068,7 @@ const EquipeView = () => {
                     {/* Rôle / Département */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Rôle <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -2013,7 +2086,7 @@ const EquipeView = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Département <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -2057,7 +2130,7 @@ const EquipeView = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Responsabilités */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Responsabilités
                         </label>
                         <div className="space-y-2">
@@ -2065,7 +2138,18 @@ const EquipeView = () => {
                             <input
                               type="text"
                               id="responsabilites-input"
-                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              className="flex-1 px-3 sm:px-4 py-2 
+                         border-2 border-gray-200 rounded-xl
+                         bg-white text-gray-700 text-xs sm:text-sm font-medium
+                         shadow-sm hover:shadow
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-100
+                         transition-all duration-200
+                         cursor-pointer appearance-none
+                         bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                         bg-[length:1.2em_1.2em]
+                         bg-[position:right_0.5rem_center]
+                         bg-no-repeat
+                         pr-8"
                               placeholder="Ex: Gestion de projet..."
                               onKeyDown={(e) =>
                                 handleArrayInputKeyDown(e, "responsabilites")
@@ -2130,7 +2214,7 @@ const EquipeView = () => {
 
                       {/* Spécialisations */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                           Spécialisations
                         </label>
                         <div className="space-y-2">
@@ -2138,7 +2222,18 @@ const EquipeView = () => {
                             <input
                               type="text"
                               id="specialisations-input"
-                              className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                              className="flex-1 px-3 sm:px-4 py-2 
+                         border-2 border-gray-200 rounded-xl
+                         bg-white text-gray-700 text-xs sm:text-sm font-medium
+                         shadow-sm hover:shadow
+                         focus:border-blue-500 focus:ring-2 focus:ring-blue-100
+                         transition-all duration-200
+                         cursor-pointer appearance-none
+                         bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                         bg-[length:1.2em_1.2em]
+                         bg-[position:right_0.5rem_center]
+                         bg-no-repeat
+                         pr-8"
                               placeholder="Ex: Fraude, Corruption..."
                               onKeyDown={(e) =>
                                 handleArrayInputKeyDown(e, "specialisations")
@@ -2204,7 +2299,7 @@ const EquipeView = () => {
 
                     {/* Adresse */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                         Adresse
                       </label>
                       <input
@@ -2212,7 +2307,13 @@ const EquipeView = () => {
                         name="adresse"
                         value={formData.adresse}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-2 
+                 border-2 border-gray-200 rounded-xl
+                 bg-white text-gray-700 text-sm
+                 shadow-sm hover:shadow
+                 focus:border-blue-500 focus:ring-4 focus:ring-blue-100
+                 transition-all duration-200
+                 placeholder:text-gray-400"
                         placeholder="Adresse physique..."
                       />
                     </div>
@@ -2332,7 +2433,7 @@ const EquipeView = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 text-center sm:block sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-all duration-300 ease-out"
                 aria-hidden="true"
                 onClick={closePasswordModal}
               />
@@ -2342,7 +2443,14 @@ const EquipeView = () => {
               >
                 &#8203;
               </span>
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div
+                className="inline-block align-bottom bg-white rounded-2xl text-left 
+                    overflow-hidden shadow-2xl 
+                    transform transition-all duration-300 ease-out
+                    sm:my-8 sm:align-middle 
+                    w-full max-w-[95vw] sm:max-w-lg
+                    border border-gray-100"
+              >
                 <div className="bg-white px-6 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="flex justify-between items-center mb-4 border-b pb-3">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -2358,7 +2466,7 @@ const EquipeView = () => {
 
                   <form onSubmit={handlePasswordSubmit} className="space-y-4">
                     <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                         Nouveau mot de passe{" "}
                         <span className="text-red-500">*</span>
                       </label>
@@ -2367,7 +2475,17 @@ const EquipeView = () => {
                         name="password"
                         value={passwordForm.password}
                         onChange={handlePasswordInputChange}
-                        className="w-full mt-1 p-2 border rounded-md pr-10"
+                        className="w-full mt-1.5 px-3 sm:px-4 py-2.5
+                        border-2 rounded-xl
+                        text-gray-700 text-sm font-medium
+                        shadow-sm hover:shadow
+                        focus:ring-4 transition-all duration-200
+                        cursor-pointer appearance-none
+                        bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                        bg-[length:1.5em_1.5em]
+                        bg-[position:right_0.5rem_center]
+                        bg-no-repeat
+                        pr-10"
                         placeholder="Minimum 8 caractères, Majuscule, Chiffre, Caractère spécial"
                         required
                       />
@@ -2388,7 +2506,7 @@ const EquipeView = () => {
                       </button>
                     </div>
                     <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 tracking-wide">
                         Confirmation <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -2396,7 +2514,17 @@ const EquipeView = () => {
                         name="passwordconfirmation"
                         value={passwordForm.passwordconfirmation}
                         onChange={handlePasswordInputChange}
-                        className="w-full mt-1 p-2 border rounded-md pr-10"
+                        className="w-full mt-1.5 px-3 sm:px-4 py-2.5
+                        border-2 rounded-xl
+                        text-gray-700 text-sm font-medium
+                        shadow-sm hover:shadow
+                        focus:ring-4 transition-all duration-200
+                        cursor-pointer appearance-none
+                        bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]
+                        bg-[length:1.5em_1.5em]
+                        bg-[position:right_0.5rem_center]
+                        bg-no-repeat
+                        pr-10"
                         placeholder="Répéter le mot de passe"
                         required
                       />

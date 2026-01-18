@@ -14,6 +14,8 @@ import {
   Globe,
   User,
   Activity,
+  Menu,
+  ChevronDown,
 } from "lucide-react";
 
 import API from "../../config/axios";
@@ -46,14 +48,16 @@ const StatusBadge = ({ status }) => {
       ) : (
         <AlertCircle size={12} />
       )}
-      {status || "Inconnu"}
+      <span className="truncate max-w-[80px] sm:max-w-none">
+        {status || "Inconnu"}
+      </span>
     </span>
   );
 };
 
 const ActionBadge = ({ action }) => {
   return (
-    <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200">
+    <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200 truncate max-w-[100px] sm:max-w-none">
       {action || "Action"}
     </span>
   );
@@ -69,7 +73,7 @@ const UserAvatar = ({ name, email }) => {
     .toUpperCase();
 
   return (
-    <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold border border-indigo-200">
+    <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold border border-indigo-200 flex-shrink-0">
       {initials}
     </div>
   );
@@ -90,24 +94,24 @@ const StatCard = ({
   };
 
   return (
-    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow h-full">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 mb-1">{title}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-gray-500 mb-1 truncate">{title}</p>
           {loading ? (
-            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
+            <div className="h-7 sm:h-8 w-16 sm:w-20 bg-gray-200 rounded animate-pulse" />
           ) : (
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
               {value.toLocaleString()}
             </p>
           )}
         </div>
         <div
-          className={`p-2 rounded-lg ${
+          className={`p-2 rounded-lg flex-shrink-0 ml-2 ${
             colorClasses[color] || colorClasses.blue
           }`}
         >
-          <Icon className="w-5 h-5" />
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
     </div>
@@ -131,6 +135,8 @@ const JournalView = () => {
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -144,6 +150,18 @@ const JournalView = () => {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [userCheckAttempted, setUserCheckAttempted] = useState(false);
+
+  // Vérifier la taille de l'écran
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     fetchAllData();
@@ -353,6 +371,9 @@ const JournalView = () => {
       auditDateStart: "",
       auditDateEnd: "",
     });
+    if (isMobile) {
+      setShowFilters(false);
+    }
   };
 
   const exportAudit = async () => {
@@ -423,20 +444,20 @@ const JournalView = () => {
 
       if (typeof parsed === "object") {
         return (
-          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all">
+          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all overflow-auto max-h-[300px]">
             {JSON.stringify(parsed, null, 2)}
           </pre>
         );
       }
 
       return (
-        <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap">
+        <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap break-all">
           {details}
         </p>
       );
     } catch (e) {
       return (
-        <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap">
+        <p className="text-gray-300 font-mono text-sm whitespace-pre-wrap break-all">
           {details}
         </p>
       );
@@ -509,7 +530,7 @@ const JournalView = () => {
 
   if (isLoading && (auditData.audit_log || []).length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-start">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex justify-center items-start">
         <div className="flex items-center gap-3 text-gray-500 animate-pulse mt-10">
           <RefreshCw className="animate-spin" />
           <span>Chargement du journal d'audit...</span>
@@ -519,16 +540,16 @@ const JournalView = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 font-sans text-slate-800 relative">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6 font-sans text-slate-800 relative">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* 0. Error Banner si erreur */}
         {errorMsg && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-200 flex items-center gap-2">
-            <AlertCircle size={20} />
-            <span>{errorMsg}</span>
+          <div className="bg-red-50 text-red-600 p-3 sm:p-4 rounded-lg border border-red-200 flex items-center gap-2 text-sm sm:text-base">
+            <AlertCircle size={20} className="flex-shrink-0" />
+            <span className="flex-1">{errorMsg}</span>
             <button
               onClick={fetchAllData}
-              className="ml-auto text-sm underline hover:text-red-800"
+              className="ml-2 text-sm underline hover:text-red-800 whitespace-nowrap"
             >
               Réessayer
             </button>
@@ -536,64 +557,67 @@ const JournalView = () => {
         )}
 
         {/* 1. Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Shield className="text-blue-600" />
-              {/* Accès toujours restreint car route protégée */}
-              <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full border border-amber-200">
-                Accès restreint
-              </span>
-              {currentUser?.email && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full border border-blue-200 flex items-center gap-1">
-                  <User size={12} />
-                  <span title={currentUser.email}>
-                    {formatUserEmail(currentUser.email)}
+        <div className="flex flex-col gap-4 bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <Shield className="text-blue-600 flex-shrink-0" />
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full border border-amber-200 whitespace-nowrap">
+                  Accès restreint
+                </span>
+                {currentUser?.email && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full border border-blue-200 flex items-center gap-1 truncate max-w-full">
+                    <User size={12} className="flex-shrink-0" />
+                    <span title={currentUser.email} className="truncate">
+                      {formatUserEmail(currentUser.email)}
+                    </span>
+                    {currentUser.role && (
+                      <span className="ml-1 hidden sm:inline">
+                        {currentUser.role}
+                      </span>
+                    )}
                   </span>
-                  {currentUser.role && (
-                    <span className="ml-1">{currentUser.role}</span>
-                  )}
+                )}
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+                Journal d'Audit
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                Surveillance et traçabilité des actions système
+              </p>
+              {lastUpdate && (
+                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded mt-2 inline-block">
+                  Dernière mise à jour: {formatDateTime(lastUpdate)}
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Journal d'Audit
-            </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              Surveillance et traçabilité des actions système
-            </p>
-            {lastUpdate && (
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded mt-2 inline-block">
-                Dernière mise à jour: {formatDateTime(lastUpdate)}
-              </span>
-            )}
-          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-100">
-              {displayStats.total.toLocaleString()} évènements
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-100 whitespace-nowrap">
+                {displayStats.total.toLocaleString()} évènements
+              </div>
+              <button
+                onClick={fetchAllData}
+                className="flex items-center gap-1 sm:gap-2 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all text-sm font-medium border border-gray-300 shadow-sm whitespace-nowrap"
+                title="Actualiser les données"
+              >
+                <RefreshCw size={16} />
+                <span className="hidden sm:inline">Actualiser</span>
+              </button>
+              <button
+                onClick={exportAudit}
+                className="flex items-center gap-1 sm:gap-2 bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all text-sm font-medium shadow-md hover:shadow-lg whitespace-nowrap"
+                title="Exporter en CSV"
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">Exporter CSV</span>
+              </button>
             </div>
-            <button
-              onClick={fetchAllData}
-              className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-all text-sm font-medium border border-gray-300 shadow-sm"
-              title="Actualiser les données"
-            >
-              <RefreshCw size={16} />
-              Actualiser
-            </button>
-            <button
-              onClick={exportAudit}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg transition-all text-sm font-medium shadow-md hover:shadow-lg"
-              title="Exporter en CSV"
-            >
-              <Download size={16} />
-              Exporter CSV
-            </button>
           </div>
         </div>
 
         {/* 2. Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
           <StatCard
             title="Total Actions"
             value={displayStats.total}
@@ -624,13 +648,25 @@ const JournalView = () => {
           />
         </div>
 
+        {/* Bouton pour afficher/masquer les filtres sur mobile */}
+        {isMobile && !showFilters && (
+          <button
+            onClick={() => setShowFilters(true)}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Filter size={16} />
+            Afficher les filtres
+            <ChevronDown size={16} className="ml-auto" />
+          </button>
+        )}
+
         {/* Info sur les filtres actifs */}
         {(filters.user ||
           filters.action ||
           filters.status ||
           filters.auditDateStart ||
           filters.auditDateEnd) && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Filter className="text-blue-600" size={16} />
@@ -640,34 +676,34 @@ const JournalView = () => {
               </div>
               <button
                 onClick={handleResetFilters}
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap"
               >
                 Tout effacer
               </button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
               {filters.user && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded truncate max-w-full">
                   Utilisateur : {filters.user}
                 </span>
               )}
               {filters.action && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded truncate max-w-full">
                   Action : {filters.action}
                 </span>
               )}
               {filters.status && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded truncate max-w-full">
                   Statut : {filters.status}
                 </span>
               )}
               {filters.auditDateStart && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded truncate max-w-full">
                   Depuis : {filters.auditDateStart}
                 </span>
               )}
               {filters.auditDateEnd && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded truncate max-w-full">
                   Jusqu'à : {filters.auditDateEnd}
                 </span>
               )}
@@ -679,90 +715,100 @@ const JournalView = () => {
           </div>
         )}
 
-        {/* 3. Filters Section */}
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-              <Filter size={16} />
-              Filtres avancés
+        {/* 3. Filters Section - Masquée sur mobile sauf si showFilters est vrai */}
+        {(!isMobile || showFilters) && (
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Filter size={16} />
+                Filtres avancés
+                {isMobile && (
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="ml-auto text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={handleResetFilters}
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap"
+              >
+                Réinitialiser
+              </button>
             </div>
-            <button
-              onClick={handleResetFilters}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Réinitialiser
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-2.5 text-gray-400"
-                size={16}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-2.5 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  value={filters.user}
+                  onChange={(e) => handleFilterChange("user", e.target.value)}
+                  placeholder="Rechercher utilisateur..."
+                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+
+              <select
+                value={filters.action}
+                onChange={(e) => handleFilterChange("action", e.target.value)}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Toutes les actions</option>
+                <option value="Connexion">Connexion</option>
+                <option value="Création">Création</option>
+                <option value="Modification">Modification</option>
+                <option value="Suppression">Suppression</option>
+                <option value="Export">Export</option>
+                <option value="Consultation">Consultation</option>
+                <option value="Tentative d'accès">Tentative d'accès</option>
+              </select>
+
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Tous les statuts</option>
+                <option value="Succès">Succès</option>
+                <option value="Échec">Échec</option>
+                <option value="Refusé">Refusé</option>
+              </select>
+
               <input
-                type="text"
-                value={filters.user}
-                onChange={(e) => handleFilterChange("user", e.target.value)}
-                placeholder="Rechercher un utilisateur..."
-                className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                type="date"
+                value={filters.auditDateStart}
+                onChange={(e) =>
+                  handleFilterChange("auditDateStart", e.target.value)
+                }
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+
+              <input
+                type="date"
+                value={filters.auditDateEnd}
+                onChange={(e) =>
+                  handleFilterChange("auditDateEnd", e.target.value)
+                }
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
-
-            <select
-              value={filters.action}
-              onChange={(e) => handleFilterChange("action", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Toutes les actions</option>
-              <option value="Connexion">Connexion</option>
-              <option value="Création">Création</option>
-              <option value="Modification">Modification</option>
-              <option value="Suppression">Suppression</option>
-              <option value="Export">Export</option>
-              <option value="Consultation">Consultation</option>
-              <option value="Tentative d'accès">Tentative d'accès</option>
-            </select>
-
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="Succès">Succès</option>
-              <option value="Échec">Échec</option>
-              <option value="Refusé">Refusé</option>
-            </select>
-
-            <input
-              type="date"
-              value={filters.auditDateStart}
-              onChange={(e) =>
-                handleFilterChange("auditDateStart", e.target.value)
-              }
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-
-            <input
-              type="date"
-              value={filters.auditDateEnd}
-              onChange={(e) =>
-                handleFilterChange("auditDateEnd", e.target.value)
-              }
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
           </div>
-        </div>
+        )}
 
         {/* 4. Table Section */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           {filteredAuditLog.length === 0 ? (
-            <div className="p-12 text-center text-gray-400 flex flex-col items-center">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                <Search size={24} />
+            <div className="p-8 sm:p-12 text-center text-gray-400 flex flex-col items-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <Search size={20} className="sm:size-24" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 Aucun résultat
               </h3>
               <p className="text-sm">
@@ -777,15 +823,17 @@ const JournalView = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full whitespace-nowrap text-left text-sm">
+              <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Utilisateur</th>
-                    <th className="px-6 py-4 font-semibold">Action</th>
-                    <th className="px-6 py-4 font-semibold">Entité Ciblée</th>
-                    <th className="px-6 py-4 font-semibold">Statut</th>
-                    <th className="px-6 py-4 font-semibold">Date</th>
-                    <th className="px-6 py-4 font-semibold text-right">
+                    <th className="px-4 py-3 font-semibold">Utilisateur</th>
+                    <th className="px-4 py-3 font-semibold">Action</th>
+                    <th className="px-4 py-3 font-semibold hidden md:table-cell">
+                      Entité Ciblée
+                    </th>
+                    <th className="px-4 py-3 font-semibold">Statut</th>
+                    <th className="px-4 py-3 font-semibold">Date</th>
+                    <th className="px-4 py-3 font-semibold text-right">
                       Détails
                     </th>
                   </tr>
@@ -796,40 +844,47 @@ const JournalView = () => {
                       key={log.id}
                       className="hover:bg-blue-50/30 transition-colors group"
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <UserAvatar
                             name={log.utilisateur}
                             email={log.utilisateur}
                           />
-                          <div>
-                            <div className="font-medium text-gray-900">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-gray-900 truncate">
                               {log.utilisateur || "Système"}
                             </div>
-                            <div className="text-xs text-gray-400 font-mono">
+                            <div className="text-xs text-gray-400 font-mono truncate">
                               {log.ip || "N/A"}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <ActionBadge action={log.action} />
                       </td>
-                      <td className="px-6 py-4 text-gray-600 font-medium">
-                        {log.entite || "-"}
+                      <td className="px-4 py-3 text-gray-600 font-medium hidden md:table-cell">
+                        <span className="truncate max-w-[150px] inline-block">
+                          {log.entite || "-"}
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <StatusBadge status={log.statut} />
                       </td>
-                      <td className="px-6 py-4 text-gray-500">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar size={14} className="text-gray-400" />
-                          <span>
-                            {new Date(log.timestamp).toLocaleDateString(
-                              "fr-FR"
-                            )}
-                          </span>
-                          <span className="text-xs text-gray-400 ml-1">
+                      <td className="px-4 py-3 text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                          <div className="flex items-center gap-1">
+                            <Calendar
+                              size={12}
+                              className="text-gray-400 flex-shrink-0"
+                            />
+                            <span className="text-xs sm:text-sm">
+                              {new Date(log.timestamp).toLocaleDateString(
+                                "fr-FR"
+                              )}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-400 sm:ml-1">
                             {new Date(log.timestamp).toLocaleTimeString(
                               "fr-FR",
                               { hour: "2-digit", minute: "2-digit" }
@@ -837,13 +892,13 @@ const JournalView = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setSelectedLog(log)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Voir les détails"
                         >
-                          <Eye size={18} />
+                          <Eye size={16} className="sm:size-18" />
                         </button>
                       </td>
                     </tr>
@@ -854,33 +909,33 @@ const JournalView = () => {
           )}
         </div>
 
-        {/* 5. SLIDE-OVER Panneau Latéral */}
+        {/* 5. SLIDE-OVER Panneau Latéral - Responsive */}
         {selectedLog && (
           <div className="fixed inset-0 z-50 flex justify-end isolate">
             <div
               className="fixed inset-0 bg-gray-900/20 backdrop-blur-[1px] transition-opacity"
               onClick={() => setSelectedLog(null)}
             />
-            <div className="relative w-full max-w-lg bg-white shadow-2xl h-full flex flex-col animate-in slide-in-from-right duration-300 border-l border-gray-200">
-              <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900">
+            <div className="relative w-full max-w-full md:max-w-lg bg-white shadow-2xl h-full flex flex-col animate-in slide-in-from-right duration-300 border-l border-gray-200">
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                     Détails de l'évènement
                   </h2>
-                  <p className="text-xs text-gray-500 mt-0.5 font-mono">
+                  <p className="text-xs text-gray-500 mt-0.5 font-mono truncate">
                     ID: {selectedLog.id}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedLog(null)}
-                  className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors flex-shrink-0 ml-2"
                 >
-                  <X size={20} />
+                  <X size={18} className="sm:size-20" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <span className="block text-xs text-gray-400 uppercase tracking-wider mb-1">
                       Utilisateur
                     </span>
@@ -889,22 +944,27 @@ const JournalView = () => {
                         name={selectedLog.utilisateur}
                         email={selectedLog.utilisateur}
                       />
-                      <div>
-                        <div>{selectedLog.utilisateur || "Inconnu"}</div>
-                        <div className="text-xs text-gray-500">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate">
+                          {selectedLog.utilisateur || "Inconnu"}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
                           {selectedLog.ip || "IP : N/A"}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <span className="block text-xs text-gray-400 uppercase tracking-wider mb-1">
                       Date & Heure
                     </span>
                     <div className="font-medium text-gray-900 flex items-center gap-2">
-                      <Clock size={16} className="text-gray-400" />
-                      <div>
+                      <Clock
+                        size={16}
+                        className="text-gray-400 flex-shrink-0"
+                      />
+                      <div className="truncate">
                         {new Date(selectedLog.timestamp).toLocaleString(
                           "fr-FR"
                         )}
@@ -913,10 +973,10 @@ const JournalView = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="p-3 border rounded-lg">
                     <span className="text-xs text-gray-500">Adresse IP</span>
-                    <div className="font-mono text-sm mt-1">
+                    <div className="font-mono text-sm mt-1 truncate">
                       {selectedLog.ip || "N/A"}
                     </div>
                   </div>
@@ -929,7 +989,7 @@ const JournalView = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="p-3 border rounded-lg">
                     <span className="text-xs text-gray-500">Action</span>
                     <div className="mt-1">
@@ -941,7 +1001,7 @@ const JournalView = () => {
                     <span className="text-xs text-gray-500">
                       Entité concernée
                     </span>
-                    <div className="mt-1 text-sm text-gray-800">
+                    <div className="mt-1 text-sm text-gray-800 truncate">
                       {selectedLog.entite || "-"}
                     </div>
                   </div>
@@ -949,15 +1009,15 @@ const JournalView = () => {
 
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                    <div className="w-1 h-4 bg-blue-600 rounded-full flex-shrink-0" />
                     Données Techniques / Changements
                   </h3>
-                  <div className="bg-gray-900 rounded-xl p-4 overflow-hidden shadow-inner border border-gray-800">
+                  <div className="bg-gray-900 rounded-xl p-3 sm:p-4 overflow-hidden shadow-inner border border-gray-800">
                     {renderDetails(selectedLog.details)}
                   </div>
                 </div>
               </div>
-              <div className="p-4 border-t border-gray-100 bg-gray-50 text-center text-xs text-gray-400">
+              <div className="p-3 sm:p-4 border-t border-gray-100 bg-gray-50 text-center text-xs text-gray-400">
                 Enregistrement système sécurisé - lecture seule. Accès restreint{" "}
                 {currentUser?.email &&
                   `- Vous êtes ${formatUserEmail(currentUser.email)}`}

@@ -27,7 +27,7 @@ API.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 API.interceptors.response.use(
@@ -70,14 +70,14 @@ API.interceptors.response.use(
 
       const requestUrl = error.config?.url || "";
       const isSafeRoute = safeRoutes.some((route) =>
-        requestUrl.includes(route)
+        requestUrl.includes(route),
       );
 
       if (isSafeRoute) {
         console.warn(
           "⚠️ [Axios] 401 sur route safe:",
           requestUrl,
-          "- pas de logout"
+          "- pas de logout",
         );
         return Promise.reject(error);
       }
@@ -85,7 +85,7 @@ API.interceptors.response.use(
       console.warn(
         "⚠️ [Axios] Token invalide (401) sur:",
         requestUrl,
-        "-> Logout"
+        "-> Logout",
       );
 
       localStorage.removeItem("auth_token");
@@ -100,7 +100,7 @@ API.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default API;

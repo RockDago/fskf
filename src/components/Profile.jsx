@@ -56,7 +56,7 @@ const Toast = ({ message, type = "success", onClose }) => {
       <div
         className={`${bgColor} border-l-4 ${
           type === "success" ? "border-emerald-500" : "border-rose-500"
-        } rounded shadow-2xl p-4 w-80 flex items-start`}
+        } rounded shadow-2xl p-4 w-[calc(100vw-24px)] sm:w-80 max-w-sm flex items-start`}
       >
         <div className="flex-shrink-0">
           {type === "success" ? (
@@ -1067,7 +1067,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-6">
+    <div className="min-h-screen bg-slate-50/50 py-4 sm:py-6">
       {/* Afficher les toasts */}
       {toasts.map((toast) => (
         <Toast
@@ -1095,23 +1095,12 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
         onResendCode={handleResendVerificationCode}
       />
 
-      <div className="max-w-4xl mx-auto px-4">
-        {/* --- BOUTON RETOUR TABLEAU DE BORD --- */}
-        <div className="mb-4">
-          <button
-            onClick={onReturnToDashboard}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Retour au tableau de bord
-          </button>
-        </div>
-
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ring-1 ring-slate-900/5">
           {/* --- HEADER BLEU PRO (HAUTEUR RÉDUITE) --- */}
           <div className="relative h-28"></div>
-          <div className="px-6 pb-6">
-            <div className="relative flex items-end gap-5 -mt-12">
+          <div className="px-4 sm:px-6 pb-6">
+            <div className="relative flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-5 -mt-12">
               {/* Avatar Wrapper */}
               <div className="relative group">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white p-1 shadow-lg ring-1 ring-black/5">
@@ -1154,7 +1143,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
               </div>
 
               {/* Infos Header - SIMPLIFIÉ (SANS RÔLE À DROITE) */}
-              <div className="flex-1 pb-1 pt-5">
+              <div className="flex-1 pb-1 pt-3 sm:pt-5">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                     {profileData.firstname || profileData.lastname
@@ -1196,8 +1185,8 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
           </div>
 
           {/* --- NAVIGATION TABS --- */}
-          <div className="border-b border-slate-200 px-6">
-            <nav className="flex -mb-px space-x-6 overflow-x-auto no-scrollbar">
+          <div className="border-b border-slate-200 px-4 sm:px-6">
+            <nav className="flex -mb-px gap-5 sm:gap-6 overflow-x-auto no-scrollbar">
               {[
                 {
                   id: "informations",
@@ -1257,7 +1246,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
           )}
 
           {/* --- CONTENU PRINCIPAL --- */}
-          <div className="p-6 min-h-[400px]">
+          <div className="p-4 sm:p-6 min-h-[400px]">
             {/* ONGLET 1: INFORMATIONS */}
             {activeTab === "informations" && (
               <form
@@ -1394,7 +1383,17 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                {/* BOUTONS ALIGNÉS CÔTE À CÔTE */}
+                <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={onReturnToDashboard}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-slate-700 bg-white rounded-lg border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 shadow-sm"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour
+                  </button>
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -1405,7 +1404,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
-                    Enregistrer les modifications
+                    Enregistrer
                   </button>
                 </div>
               </form>
@@ -1478,7 +1477,17 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
                   </div>
                 </div>
 
-                <div className="flex justify-end">
+                {/* BOUTONS ALIGNÉS CÔTE À CÔTE */}
+                <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={onReturnToDashboard}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-slate-700 bg-white rounded-lg border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 shadow-sm"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour
+                  </button>
+
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -1500,7 +1509,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Carte Email */}
                 <div className="group p-5 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:shadow-md transition-all duration-300">
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex gap-4">
                       <div
                         className={`p-3 rounded-xl transition-colors ${
@@ -1559,7 +1568,7 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
 
                 {/* Carte 2FA */}
                 <div className="group p-5 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:shadow-md transition-all duration-300">
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex gap-4">
                       <div
                         className={`p-3 rounded-xl transition-colors ${
@@ -1640,6 +1649,17 @@ const Profile = ({ onReturnToDashboard, onAvatarUpdate }) => {
                       </span>
                     </div>
                   )}
+                </div>
+
+                {/* BOUTON RETOUR POUR L'ONGLET SÉCURITÉ */}
+                <div className="pt-6 border-t border-slate-100">
+                  <button
+                    onClick={onReturnToDashboard}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-slate-700 bg-white rounded-lg border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 shadow-sm"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour
+                  </button>
                 </div>
               </div>
             )}

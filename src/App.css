@@ -5,7 +5,6 @@
   font-family: "Inter", Arial, sans-serif;
 }
 
-
 .App {
   text-align: center;
 }
@@ -45,3 +44,56 @@
   }
 }
 
+/* Responsive mobile sans affecter desktop */
+@media (max-width: 767px) {
+  /* Ajustements Header */
+  .header-logo {
+    max-height: 48px !important;
+  }
+
+  /* Ajustements contenu principal */
+  .main-content {
+    padding: 1rem !important;
+  }
+
+  /* Masquer certains éléments sur mobile si nécessaire */
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  /* Afficher sur mobile */
+  .mobile-visible {
+    display: block !important;
+  }
+
+  /* Empêcher le zoom sur les inputs */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Desktop (≥ 768px) - Garder tout comme avant */
+@media (min-width: 768px) {
+  /* S'assurer que tout reste comme avant */
+  .header-logo {
+    max-height: 112px !important;
+  }
+}
+
+/* Animation pour sidebar mobile */
+.sidebar-mobile-slide {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Overlay pour sidebar mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+}
